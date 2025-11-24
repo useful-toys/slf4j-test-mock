@@ -1,4 +1,5 @@
 # This workflow tests the project by running a full build with the 'release' profile.
+# It also performs GPG signing if the required secrets are available.
 
 name: Test Release Build
 
@@ -7,6 +8,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -23,8 +25,17 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Import GPG key
+        id: import_gpg
+        if: secrets.GPG_SIGNING_KEY != ''
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_SIGNING_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
       - name: Make mvnw executable
         run: chmod +x mvnw
 
       - name: Build with Maven
-        run: ./mvnw clean install -P release -Dgpg.skip=true --batch-mode
+        # The gpg.skip property is set to 'true' if the GPG key was not imported, 'false' otherwise.
+        run: ./mvnw clean install -P release --batch-mode -Dgpg.skip=${{ steps.import_gpg.outputs.fingerprint == '' }}
