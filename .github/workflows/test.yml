@@ -30,6 +30,7 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.GPG_SIGNING_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          fingerprint: "7AFA66E152AD868D0DB288DE9B1946E0C106B759"
 
       - name: Make mvnw executable
         run: chmod +x mvnw
