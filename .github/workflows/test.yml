@@ -26,8 +26,6 @@ jobs:
           cache: 'maven'
 
       - name: Import GPG key
-        id: import_gpg
-        if: secrets.GPG_SIGNING_KEY != ''
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_SIGNING_KEY }}
@@ -37,5 +35,4 @@ jobs:
         run: chmod +x mvnw
 
       - name: Build with Maven
-        # The gpg.skip property is set to 'true' if the GPG key was not imported, 'false' otherwise.
-        run: ./mvnw clean install -P release --batch-mode -Dgpg.skip=${{ steps.import_gpg.outputs.fingerprint == '' }}
+        run: ./mvnw clean install -P release --batch-mode
