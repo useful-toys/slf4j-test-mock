@@ -26,6 +26,7 @@
     <groupId>org.usefultoys</groupId>
     <artifactId>slf4j-test-mock</artifactId>
     <version>0.0.0</version>
+    <name>SLF4J Test Mock Implementation</name>
 
 
     <description>A comprehensive mock implementation of the SLF4J logging framework designed specifically for unit testing.</description>
