@@ -24,13 +24,15 @@ jobs:
           java-version: '8'
           distribution: 'temurin'
           cache: 'maven'
+          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          gpg-private-key: ${{ secrets.GPG_SIGNING_KEY }}
 
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.GPG_SIGNING_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          fingerprint: "7AFA66E152AD868D0DB288DE9B1946E0C106B759"
+#      - name: Import GPG key
+#        uses: crazy-max/ghaction-import-gpg@v6
+#        with:
+#          gpg_private_key: ${{ secrets.GPG_SIGNING_KEY }}
+#          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+#          fingerprint: "7AFA66E152AD868D0DB288DE9B1946E0C106B759"
 
       - name: Make mvnw executable
         run: chmod +x mvnw
