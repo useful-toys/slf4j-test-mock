@@ -27,6 +27,10 @@ jobs:
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
           gpg-private-key: ${{ secrets.GPG_SIGNING_KEY }}
 
+      - name: Print Maven settings.xml
+        run: cat ~/.m2/settings.xml
+        shell: bash
+
 #      - name: Import GPG key
 #        uses: crazy-max/ghaction-import-gpg@v6
 #        with:
@@ -37,6 +41,9 @@ jobs:
       - name: Make mvnw executable
         run: chmod +x mvnw
 
+      - name: List GPG keys
+        run: gpg --list-secret-keys --keyid-format LONG
+
       - name: Build with Maven
         run: ./mvnw clean install -P release --batch-mode
 
@@ -44,5 +51,3 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
-
