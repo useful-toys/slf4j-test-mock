@@ -67,6 +67,7 @@ public class MockLoggerFactory implements ILoggerFactory {
     @Override
     public Logger getLogger(final String name) {
         Logger logger = nameToLogger.get(name);
+        int i = 0;
         if (logger != null) {
             return logger;
         }
