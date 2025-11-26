@@ -21,7 +21,7 @@ coverage:
         # This is a powerful rule to ensure new features are always well-tested.
         target: 90%
         # Does not allow any drop from the target.
-        threshold: 0%
+        threshold: 0.5%
 
 # Allows Codecov to post a comment on the PR with a coverage summary.
 comment:

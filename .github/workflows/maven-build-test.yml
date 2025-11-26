@@ -5,22 +5,8 @@
 name: Maven Build and Test
 
 on:
-  # Trigger on pushes to any branch, EXCEPT main
   push:
-    branches-ignore:
-      - 'main'
-    # Only run on push if relevant files were changed
-    paths:
-      - 'src/**'
-      - 'pom.xml'
-      - '.github/workflows/**'
-
-  # Trigger on Pull Requests targeting the main branch
   pull_request:
-    branches:
-      - 'main'
-
-  # Allow manual execution
   workflow_dispatch:
 
 permissions:
