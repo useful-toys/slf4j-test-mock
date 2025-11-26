@@ -2,7 +2,7 @@
 # It runs on pushes to feature branches (only for code changes) 
 # and on all pull requests to the main branch.
 
-name: Maven Build and Test
+name: Maven Build and Test 2
 
 on:
   # Trigger on pushes to any branch, EXCEPT main
