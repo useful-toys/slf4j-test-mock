@@ -22,7 +22,7 @@ permissions:
   contents: write
 
 jobs:
-  create-version:
+  create-new-version:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
