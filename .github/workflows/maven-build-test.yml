@@ -2,7 +2,7 @@
 # It runs on pushes to feature branches (only for code changes) 
 # and on all pull requests to the main branch.
 
-name: Maven Build and Test 2
+name: Maven Build and Test
 
 on:
   # Trigger on pushes to any branch, EXCEPT main
@@ -46,8 +46,8 @@ jobs:
         run: sh mvnw clean verify --batch-mode
 
       - name: Upload coverage to Codecov
-        # This step only runs when the trigger is a pull_request
-        if: github.event_name == 'pull_request'
+        # This step runs on pull requests and manual dispatches
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
