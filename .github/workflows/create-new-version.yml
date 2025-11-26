@@ -24,11 +24,10 @@ permissions:
 jobs:
   create-new-version:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 8
         uses: actions/setup-java@v5
@@ -50,6 +49,8 @@ jobs:
         id: release_version
         run: |
           CURRENT_VERSION=$(echo "${{ steps.current_version.outputs.version }}" | sed 's/-SNAPSHOT//')
+          echo "Current version: $CURRENT_VERSION"
+          
           INCREMENT_TYPE="${{ github.event.inputs.version_increment }}"
           IFS='.' read -r -a V_PARTS <<< "$CURRENT_VERSION"
           MAJOR=${V_PARTS[0]}
@@ -71,24 +72,3 @@ jobs:
           NEXT_SNAPSHOT_VERSION="$MAJOR.$((MINOR + 1)).0-SNAPSHOT"
           echo "Calculated next snapshot version: $NEXT_SNAPSHOT_VERSION"
           echo "next_snapshot=$NEXT_SNAPSHOT_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Update version to ${{ steps.release_version.outputs.version }}
-        run: sh mvnw versions:set -DnewVersion=${{ steps.release_version.outputs.version }} -DgenerateBackupPoms=false
-
-      - name: Commit release version 
-        run: git commit -am "chore(release): set version to ${{ steps.release_version.outputs.version }}"
-
-      - name: Create tag
-        run: git tag -a "v${{ steps.release_version.outputs.version }}" -m "Release v${{ steps.release_version.outputs.version }}"
-
-      - name: Update version to ${{ steps.release_version.outputs.next_snapshot }}
-        run: sh -mvnw versions:set -DnewVersion=${{ steps.release_version.outputs.next_snapshot }} -DgenerateBackupPoms=false
-
-      - name: Commit snapshot version
-        run: git commit -am "chore: update version to ${{ steps.release_version.outputs.next_snapshot }}"
-
-      - name: Commit next snapshot version
-        run: git commit -am "chore(dev): prepare for next development iteration"
-
-      - name: Push changes and tags
-        run: git push origin main --follow-tags
