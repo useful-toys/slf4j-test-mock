@@ -72,3 +72,23 @@ jobs:
           NEXT_SNAPSHOT_VERSION="$MAJOR.$((MINOR + 1)).0-SNAPSHOT"
           echo "Calculated next snapshot version: $NEXT_SNAPSHOT_VERSION"
           echo "next_snapshot=$NEXT_SNAPSHOT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update version to ${{ steps.release_version.outputs.version }}
+        run: sh mvnw versions:set -DnewVersion=${{ steps.release_version.outputs.version }} -DgenerateBackupPoms=false
+
+      - name: Commit release version
+        run: |
+          git commit -am "chore: set version to ${{ steps.release_version.outputs.version }}"
+
+      - name: Create tag for release version
+        run: git tag -a "v${{ steps.release_version.outputs.version }}" -m "Version ${{ steps.release_version.outputs.version }}"
+
+      - name: Update version to ${{ steps.release_version.outputs.next_snapshot }}
+        run: sh mvnw versions:set -DnewVersion=${{ steps.release_version.outputs.next_snapshot }} -DgenerateBackupPoms=false
+
+      - name: Commit snapshot version
+        run: |
+          git commit -am "chore: ser version to ${{ steps.release_version.outputs.next_snapshot }}"
+
+      - name: Push changes and tags
+        run: git push --follow-tags
