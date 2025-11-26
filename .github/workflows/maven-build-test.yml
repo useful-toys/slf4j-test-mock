@@ -11,9 +11,7 @@ on:
 
 permissions:
   contents: read
-  # Permission for the Codecov action to post comments on the PR
   pull-requests: write
-  # Permission for the Codecov action to post status checks
   statuses: write
 
 jobs:
