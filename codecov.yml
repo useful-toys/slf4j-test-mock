@@ -9,7 +9,7 @@ coverage:
         # The target is 'auto', which means coverage cannot decrease.
         # If project coverage is 85%, the PR must maintain or increase it to pass.
         # You can replace 'auto' with a fixed value, like "80%".
-        target: auto
+        target: 90%
         # Allows for a small drop in coverage before failing.
         # Useful to prevent failures from minor fluctuations.
         threshold: 0.5%
