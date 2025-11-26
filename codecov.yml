@@ -2,10 +2,14 @@
 
 coverage:
   # Status checks that will appear in the Pull Request
-status:
-  project: true
-  patch: true
-  changes: true
+  status:
+    # Rules for the project-wide coverage
+    project:
+      default:
+
+    # Rules for the coverage of new/modified lines in the PR only
+    patch:
+      default:
 
 # Allows Codecov to post a comment on the PR with a coverage summary.
 comment:
