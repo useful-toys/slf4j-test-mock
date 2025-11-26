@@ -33,7 +33,6 @@ jobs:
 
       - name: Upload coverage to Codecov
         # This step runs on pull requests and manual dispatches
-        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
