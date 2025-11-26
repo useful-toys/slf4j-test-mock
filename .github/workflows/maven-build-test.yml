@@ -32,7 +32,6 @@ jobs:
         run: sh mvnw clean verify --batch-mode
 
       - name: Upload coverage to Codecov
-        # This step runs on pull requests and manual dispatches
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
