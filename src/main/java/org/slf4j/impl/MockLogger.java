@@ -151,6 +151,7 @@ public class MockLogger implements Logger {
 
     @Override
     public boolean isTraceEnabled(final Marker marker) {
+        
         return traceEnabled;
     }
 
