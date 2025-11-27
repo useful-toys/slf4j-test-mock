@@ -10,10 +10,13 @@ on:
 
 permissions:
   contents: write # to fetch code (actions/checkout) and push tags
+  # Adicionada permissão para criar releases
+  releases: write
 
 jobs:
   build-release-deploy:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
@@ -44,7 +47,14 @@ jobs:
             gh release create ${{ github.ref_name }} \
               --repo ${{ github.repository }} \
               --generate-notes \
-              --title "Version ${{ github.ref_name }}" \
+              --title "Version ${{ github.ref_name }}"
+              
+      - name: Upload Release Assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+            gh release upload ${{ github.ref_name }} \
+              --repo ${{ github.repository }} \
               ./target/*.jar \
               ./target/*-sources.jar \
-              ./target/*-javadoc.jar
+              ./target/*-javadoc.jar --clobber
