@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   create-new-version:
@@ -45,7 +46,7 @@ jobs:
 
       - name: Get current version
         id: current_version
-        run: echo "version=$(mvn -ntp help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
+        run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
 
       - name: Determine next release version
         id: release_version
