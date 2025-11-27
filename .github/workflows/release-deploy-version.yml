@@ -10,8 +10,6 @@ on:
 
 permissions:
   contents: write # to fetch code (actions/checkout) and push tags
-  # Adicionada permissão para criar releases
-  releases: write
 
 jobs:
   build-release-deploy:
