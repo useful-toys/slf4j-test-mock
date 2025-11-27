@@ -45,7 +45,7 @@ jobs:
 
       - name: Get current version
         id: current_version
-        run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
+        run: echo "version=$(mvn -ntp help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
 
       - name: Determine next release version
         id: release_version
@@ -76,7 +76,7 @@ jobs:
           echo "next_snapshot=$NEXT_SNAPSHOT_VERSION" >> $GITHUB_OUTPUT
 
       - name: Update version to ${{ steps.release_version.outputs.version }}
-        run: sh mvnw versions:set -DnewVersion=${{ steps.release_version.outputs.version }} -DgenerateBackupPoms=false
+        run: sh mvnw -ntp versions:set -DnewVersion=${{ steps.release_version.outputs.version }} -DgenerateBackupPoms=false
 
       - name: Commit release version
         run: |
@@ -90,7 +90,7 @@ jobs:
 
       - name: Commit snapshot version
         run: |
-          git commit -am "chore: ser version to ${{ steps.release_version.outputs.next_snapshot }}"
+          git commit -am "chore: set version to ${{ steps.release_version.outputs.next_snapshot }}"
 
       - name: Push changes and tags
         run: git push --follow-tags
