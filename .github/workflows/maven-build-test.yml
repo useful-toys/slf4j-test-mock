@@ -1,8 +1,8 @@
-# This workflow builds and tests the project using Maven.
-# It runs on pushes to feature branches (only for code changes) 
-# and on all pull requests to the main branch.
+# This workflow builds, tests, and analyzes the project.
+# It runs on pushes and pull requests to the main branch,
+# and on pushes to feature branches (only for code changes).
 
-name: Maven Build and Test
+name: Maven Build, Test and Analyze
 
 on:
   push:
@@ -20,6 +20,9 @@ permissions:
   contents: read
   pull-requests: write
   statuses: write
+  security-events: write
+  actions: read
+  checks: write
 
 jobs:
   maven-build-test:
@@ -50,3 +53,16 @@ jobs:
         uses: coverallsapp/github-action@v2
         with:
           file: ./target/site/jacoco/jacoco.xml
+
+  qodana:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Qodana Scan
+        uses: JetBrains/qodana-action@v2025.2
+        env:
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_714368892 }}
