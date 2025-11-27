@@ -50,9 +50,13 @@ jobs:
         id: current_version
         run: |
           # Get the latest tag name like v1.2.3 and remove the 'v' prefix
-          LATEST_TAG=$(git describe --tags --match "v*.*.*" `git rev-list --tags --max-count=1`)
+          LATEST_TAG=$(git describe --tags --match "v*.*.*" `git rev-list --tags --max-count=1` 2>/dev/null || true)
           echo "Latest tag: $LATEST_TAG"
-          VERSION=${LATEST_TAG#v}
+          if [ -z "$LATEST_TAG" ]; then
+            VERSION=0.0.0
+          else
+            VERSION=${LATEST_TAG#v}
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Determine next release version
