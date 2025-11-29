@@ -1,5 +1,8 @@
 # Codecov configuration file
 
+codecov:
+  bot: "mybot"  # Specify the bot username for Codecov to use when posting comments
+
 coverage:
   # Status checks that will appear in the Pull Request
   status:
