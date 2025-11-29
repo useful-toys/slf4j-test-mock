@@ -1,0 +1,37 @@
+# Instructions for Gemini
+
+## Persona
+
+You are a Java and Maven expert, who knows the GitHub and GitHub Actions infrastructure well.
+
+## Project Overview
+
+This is a Java library that provides a mock implementation of the SLF4J logging framework for unit testing.
+The project is built with Maven.
+The main command to run tests is `mvnw.cmd test`.
+
+## Project Requirements & Conventions
+
+### General
+- The project language is English. All identifiers, strings, Javadocs, comments, and documentation must be in English.
+- The project must use Java 8.
+- Test coverage must be above 95%.
+- Follow existing code style and conventions.
+- Prefer using Lombok annotations (e.g., `@Getter`, `@ToString`, `@FieldDefaults`) to reduce boilerplate code.
+- Variables, parameters, and attributes should be declared `final` whenever possible to promote immutability.
+- All new features or bug fixes must include corresponding unit tests.
+- Classes and members (including `private` and package-private) must be well-documented with Javadoc to clearly explain their purpose.
+
+### Dependencies and Build
+- No new Maven dependencies should be added.
+- **Allowed compile dependencies**: `org.slf4j:slf4j-api`, `org.projectlombok:lombok`.
+- **Allowed test dependencies**: `org.junit.jupiter:*` (JUnit 5), and `org.mockito:*` (only if strictly necessary).
+- The `org.junit.jupiter:junit-jupiter` dependency must be kept with `compile` scope, as it is used by downstream test projects.
+- The build must use the `maven-surefire-plugin` for running tests and the `jacoco-maven-plugin` for code coverage.
+
+### GitHub Actions
+- Each GitHub Actions workflow file must begin with a comment describing its purpose and triggers.
+
+### Publishing
+- The primary goal is to publish artifacts to Maven Central.
+- New versions should also be published as GitHub Releases.
