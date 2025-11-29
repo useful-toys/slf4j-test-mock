@@ -1,4 +1,7 @@
 
+# This workflow runs a Qodana static analysis scan on the codebase.
+# It is triggered on pull requests, manual dispatch, and pushes to feature branches (not main).
+# The results are used to identify code quality issues and potential bugs.
 
 name: Qodana Scan
 
