@@ -20,7 +20,6 @@ import java.util.Map;
 
 import lombok.Getter;
 import lombok.ToString;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Marker;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -49,7 +48,7 @@ import org.slf4j.helpers.MessageFormatter;
  * @author Daniel Felix Ferber
  */
 @Getter
-@ToString(includeFieldNames = true)
+@ToString
 public class MockLoggerEvent {
 
     private final String loggerName;
