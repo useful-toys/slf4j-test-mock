@@ -50,7 +50,7 @@ public class AssertLogger {
      * @throws AssertionError if the logger is not an instance of MockLogger
      */
     private MockLogger toMockLogger(final Logger logger) {
-        Assertions.assertTrue(logger instanceof MockLogger, 
+        Assertions.assertInstanceOf(MockLogger.class, logger, 
             String.format("should be MockLogger instance; actual type: %s", 
                 logger != null ? logger.getClass().getName() : "null"));
         return (MockLogger) logger;
@@ -396,7 +396,7 @@ public class AssertLogger {
         final boolean hasEvent = loggerEvents.stream()
             .anyMatch(event -> {
                 final Throwable throwable = event.getThrowable();
-                return throwable != null && throwableClass.isInstance(throwable);
+                return throwableClass.isInstance(throwable);
             });
         Assertions.assertTrue(hasEvent, 
             String.format("should have at least one event with expected throwable type; expected: %s", throwableClass.getName()));
@@ -415,7 +415,7 @@ public class AssertLogger {
         final boolean hasEvent = loggerEvents.stream()
             .anyMatch(event -> {
                 final Throwable throwable = event.getThrowable();
-                if (throwable == null || !throwableClass.isInstance(throwable)) {
+                if (!throwableClass.isInstance(throwable)) {
                     return false;
                 }
                 final String actualMessage = throwable.getMessage();
