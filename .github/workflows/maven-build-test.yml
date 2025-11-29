@@ -54,15 +54,9 @@ jobs:
         with:
           file: ./target/site/jacoco/jacoco.xml
 
-  qodana:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+      - name: Upload coverage to Codacy
+        uses: codacy/codacy-coverage-reporter-action@v1.3.0
         with:
-          fetch-depth: 0
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: ./target/site/jacoco/jacoco.xml      
 
-      - name: Qodana Scan
-        uses: JetBrains/qodana-action@v2025.2
-        env:
-          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_714368892 }}
