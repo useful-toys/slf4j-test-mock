@@ -1,11 +1,12 @@
 # This workflow builds and deploys the project to Maven Central.
-# It is triggered when a release pull request is merged.
+# It is triggered on a push event for tags matching 'v*.*.*' (e.g., v1.2.3),
+# or can be triggered manually.
 name: Release and Deploy Version
 
 on:
   push:
     tags:
-      - 'v*.*.*' # Dispara para qualquer tag que comece com 'v'
+      - 'v*.*.*' # Triggers on any tag starting with 'v'
   workflow_dispatch:
 
 permissions:
