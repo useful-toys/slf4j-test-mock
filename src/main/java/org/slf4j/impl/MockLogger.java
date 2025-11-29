@@ -493,12 +493,6 @@ public class MockLogger implements Logger {
     }
 
     /**
-     * Prints the log event to the appropriate output stream (stdout or stderr) based on its level and if the
-     * logger had printing enabled.
-     *
-     * @param event the log event to print
-     */
-    /**
      * Prints the log event to the appropriate output stream (stdout or stderr) based on its level and
      * if the logger had printing enabled.
      *
@@ -517,12 +511,6 @@ public class MockLogger implements Logger {
         ps.flush();
     }
 
-    /**
-     * Formats the log statement for printing.
-     *
-     * @param event the log event to format
-     * @return the formatted log statement
-     */
     /**
      * Formats a log event for display output.
      *
