@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.impl.MockLoggerEvent.Level;
+import org.usefultoys.slf4jtestmock.AssertLogger;
 
 import java.io.IOException;
 
