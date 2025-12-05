@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.impl.MockLoggerEvent.Level;
+import org.usefultoys.slf4jtestmock.AssertLogger;
 
 /**
  * Integration tests demonstrating the use of {@link AssertLogger} with the SLF4J Logger interface.
