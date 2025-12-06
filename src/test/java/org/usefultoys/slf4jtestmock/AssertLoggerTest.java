@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.slf4j.impl;
+package org.usefultoys.slf4jtestmock;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.slf4j.impl.MockLogger;
 import org.slf4j.impl.MockLoggerEvent.Level;
-import org.usefultoys.slf4jtestmock.AssertLogger;
 
 import java.io.IOException;
 
