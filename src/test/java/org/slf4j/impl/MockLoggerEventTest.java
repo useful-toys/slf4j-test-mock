@@ -15,8 +15,8 @@
  */
 package org.slf4j.impl;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.impl.MockLoggerEvent.Level;
@@ -43,8 +43,8 @@ class MockLoggerEventTest {
         String message = "Test message";
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(loggerName, level, null, null, null, message);
-        
+        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message);
+
         // Then
         assertEquals(loggerName, event.getLoggerName());
         assertEquals(level, event.getLevel());
@@ -55,6 +55,8 @@ class MockLoggerEventTest {
         // Arguments array is created as empty array, not null
         assertNotNull(event.getArguments());
         assertEquals(0, event.getArguments().length);
+        // eventIndex should reflect the provided index
+        assertEquals(0, event.getEventIndex());
     }
 
     @Test
@@ -72,8 +74,8 @@ class MockLoggerEventTest {
         Object[] arguments = {"argument1"};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(loggerName, level, mdc, marker, throwable, message, arguments);
-        
+        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, mdc, marker, throwable, message, arguments);
+
         // Then
         assertEquals(loggerName, event.getLoggerName());
         assertEquals(level, event.getLevel());
@@ -95,8 +97,8 @@ class MockLoggerEventTest {
         Object[] arguments = {"arg1", "arg2", exception};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(loggerName, level, null, null, null, message, arguments);
-        
+        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
+
         // Then
         assertEquals(exception, event.getThrowable());
         assertEquals(2, event.getArguments().length);
@@ -116,8 +118,8 @@ class MockLoggerEventTest {
         Object[] arguments = {"arg1", argumentException};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(loggerName, level, null, null, explicitException, message, arguments);
-        
+        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, explicitException, message, arguments);
+
         // Then
         assertEquals(explicitException, event.getThrowable());
         assertEquals(2, event.getArguments().length);
@@ -136,8 +138,8 @@ class MockLoggerEventTest {
         Object[] arguments = {exception};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(loggerName, level, null, null, null, message, arguments);
-        
+        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
+
         // Then
         assertNull(event.getThrowable());
         assertEquals(1, event.getArguments().length);
@@ -154,8 +156,8 @@ class MockLoggerEventTest {
         Object[] arguments = {"john.doe", "192.168.1.1"};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(loggerName, level, null, null, null, message, arguments);
-        
+        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
+
         // Then
         assertEquals("User john.doe logged in from IP 192.168.1.1", event.getFormattedMessage());
     }
@@ -169,8 +171,8 @@ class MockLoggerEventTest {
         String message = "Simple trace message";
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(loggerName, level, null, null, null, message);
-        
+        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message);
+
         // Then
         assertEquals("Simple trace message", event.getFormattedMessage());
     }
@@ -185,8 +187,8 @@ class MockLoggerEventTest {
         Object[] arguments = {null};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(loggerName, level, null, null, null, message, arguments);
-        
+        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
+
         // Then
         assertEquals("Value is null", event.getFormattedMessage());
     }
@@ -202,7 +204,7 @@ class MockLoggerEventTest {
         Object[] arguments = {"arg1"};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(loggerName, level, null, marker, null, message, arguments);
+        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, marker, null, message, arguments);
         String toStringResult = event.toString();
         
         // Then
@@ -236,8 +238,8 @@ class MockLoggerEventTest {
         Object[] arguments = {100, 95, 5};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(loggerName, level, null, null, null, message, arguments);
-        
+        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
+
         // Then
         assertEquals("Processing 100 items: 95 successful, 5 failed", event.getFormattedMessage());
     }
@@ -252,8 +254,8 @@ class MockLoggerEventTest {
         Object[] originalArguments = {"arg1", "arg2"};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(loggerName, level, null, null, null, message, originalArguments);
-        
+        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, originalArguments);
+
         // Then
         assertSame(originalArguments, event.getArguments());
     }

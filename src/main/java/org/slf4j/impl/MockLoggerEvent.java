@@ -15,13 +15,13 @@
  */
 package org.slf4j.impl;
 
-import java.util.Arrays;
-import java.util.Map;
-
 import lombok.Getter;
 import lombok.ToString;
 import org.slf4j.Marker;
 import org.slf4j.helpers.MessageFormatter;
+
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Represents a single log event captured by {@link MockLogger}.
@@ -51,6 +51,7 @@ import org.slf4j.helpers.MessageFormatter;
 @ToString
 public class MockLoggerEvent {
 
+    private final int eventIndex;
     private final String loggerName;
 
     private final Level level;
@@ -71,6 +72,7 @@ public class MockLoggerEvent {
      * If no throwable is explicitly passed but the last argument is a {@link Throwable},
      * it is extracted automatically and stored separately.
      *
+     * @param eventIndex the index of the event
      * @param loggerName the name of the logger
      * @param level      the log level
      * @param mdc        the MDC context map
@@ -80,6 +82,7 @@ public class MockLoggerEvent {
      * @param arguments  the message arguments
      */
     public MockLoggerEvent(
+            final int eventIndex,
             final String loggerName,
             final Level level,
             final Map<String, String> mdc,
@@ -88,6 +91,7 @@ public class MockLoggerEvent {
             final String message,
             final Object... arguments) {
 
+        this.eventIndex = eventIndex;
         this.loggerName = loggerName;
         this.level = level;
         this.mdc = mdc;
@@ -107,9 +111,6 @@ public class MockLoggerEvent {
             this.arguments = arguments;
         }
     }
-
-    // Getters são gerados automaticamente pela anotação @Getter do Lombok
-    // toString() é gerado automaticamente pela anotação @ToString do Lombok
 
     /**
      * Returns the formatted message by applying SLF4J's {@link MessageFormatter} to the message and arguments.
