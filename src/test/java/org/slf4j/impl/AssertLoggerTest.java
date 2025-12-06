@@ -61,7 +61,7 @@ class AssertLoggerTest {
             final Logger logger = new MockLogger("test");
             logger.info("Hello World");
             final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEvent(logger, 0, "Universe"));
-            assertTrue(error.getMessage().contains("should contain expected message part"));
+            assertTrue(error.getMessage().contains("should contain all expected message parts"));
         }
 
         @Test
@@ -70,7 +70,7 @@ class AssertLoggerTest {
             final Logger logger = new MockLogger("test");
             logger.info("Hello beautiful World");
             final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEvent(logger, 0, "Hello", "Universe"));
-            assertTrue(error.getMessage().contains("should contain expected message part"));
+            assertTrue(error.getMessage().contains("should contain all expected message parts"));
         }
 
         @Test
@@ -300,7 +300,7 @@ class AssertLoggerTest {
             final Marker marker = MarkerFactory.getMarker("PERF");
             logger.trace(marker, "Performance measurement");
             final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEvent(logger, 0, Level.TRACE, marker, "Performance", "missing"));
-            assertTrue(error.getMessage().contains("should contain expected message part"));
+            assertTrue(error.getMessage().contains("should contain all expected message parts"));
         }
 
         @Test
@@ -645,7 +645,7 @@ class AssertLoggerTest {
             final Logger logger = new MockLogger("test");
             logger.error("Error occurred", new RuntimeException("Different message"));
             final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEventWithThrowable(logger, 0, RuntimeException.class, "Expected text"));
-            assertTrue(error.getMessage().contains("should contain expected throwable message part"));
+            assertTrue(error.getMessage().contains("should contain all expected message parts in throwable"));
         }
 
         @Test
@@ -654,7 +654,7 @@ class AssertLoggerTest {
             final Logger logger = new MockLogger("test");
             logger.error("Error occurred", new RuntimeException((String) null));
             final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEventWithThrowable(logger, 0, RuntimeException.class, "Any text"));
-            assertTrue(error.getMessage().contains("should have throwable message"));
+            assertTrue(error.getMessage().contains("should contain all expected message parts in throwable"));
         }
 
         @Test
