@@ -235,13 +235,13 @@ public class AssertLogger {
     public void assertEventWithThrowable(final Logger logger, final int eventIndex, final Class<? extends Throwable> expectedThrowableClass) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final Throwable throwable = event.getThrowable();
-        AssertHelper.assertThrowableOfInstance(throwable, expectedThrowableClass);
+        AssertHelper.assertThrowableOfInstance(event, throwable, expectedThrowableClass);
     }
 
     public void assertEventWithThrowable(final Logger logger, final int eventIndex, final String... throwableMessageParts) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final Throwable throwable = event.getThrowable();
-        AssertHelper.assertThrowableHasMessageParts(throwable, throwableMessageParts);
+        AssertHelper.assertThrowableHasMessageParts(event, throwable, throwableMessageParts);
     }
 
     /**
@@ -255,8 +255,8 @@ public class AssertLogger {
     public void assertEventWithThrowable(final Logger logger, final int eventIndex, final Class<? extends Throwable> expectedThrowableClass, final String... throwableMessageParts) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final Throwable throwable = event.getThrowable();
-        AssertHelper.assertThrowableOfInstance(throwable, expectedThrowableClass);
-        AssertHelper.assertThrowableHasMessageParts(throwable, throwableMessageParts);
+        AssertHelper.assertThrowableOfInstance(event, throwable, expectedThrowableClass);
+        AssertHelper.assertThrowableHasMessageParts(event, throwable, throwableMessageParts);
     }
 
     /**
@@ -267,7 +267,7 @@ public class AssertLogger {
      */
     public void assertEventHasThrowable(final Logger logger, final int eventIndex) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
-        Assertions.assertNotNull(event.getThrowable(), "should have a throwable");
+        Assertions.assertNotNull(event.getThrowable(), String.format("should have a throwable at eventIndex %d", event.getEventIndex()));
     }
 
     /**

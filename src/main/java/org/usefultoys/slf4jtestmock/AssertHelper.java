@@ -54,8 +54,8 @@ class AssertHelper {
     void assertMessageParts(MockLoggerEvent event, String[] messageParts) {
         boolean hasAllParts = hasAllMessageParts(event, messageParts);
         Assertions.assertTrue(hasAllParts,
-                String.format("should contain all expected message parts; expected parts: %s; actual message: %s",
-                        String.join(", ", messageParts), event.getFormattedMessage()));
+                String.format("should contain all expected message parts at eventIndex %d; expected parts: %s; actual message: %s",
+                        event.getEventIndex(), String.join(", ", messageParts), event.getFormattedMessage()));
     }
 
     /**
@@ -67,7 +67,7 @@ class AssertHelper {
      */
     void assertMarker(MockLoggerEvent event, Marker expectedMarker) {
         Assertions.assertSame(expectedMarker, event.getMarker(),
-                String.format("should have expected marker; expected: %s, actual: %s", expectedMarker, event.getMarker()));
+                String.format("should have expected marker at eventIndex %d; expected: %s, actual: %s", event.getEventIndex(), expectedMarker, event.getMarker()));
     }
 
     /**
@@ -79,34 +79,36 @@ class AssertHelper {
      */
     void assertLevel(MockLoggerEvent event, MockLoggerEvent.Level expectedLevel) {
         Assertions.assertSame(expectedLevel, event.getLevel(),
-                String.format("should have expected log level; expected: %s, actual: %s", expectedLevel, event.getLevel()));
+                String.format("should have expected log level at eventIndex %d; expected: %s, actual: %s", event.getEventIndex(), expectedLevel, event.getLevel()));
     }
 
     /**
      * Asserts that a {@link Throwable} is not null and is an instance of the expected class.
      *
+     * @param event                  the log event to check.
      * @param throwable              the throwable to check.
      * @param expectedThrowableClass the expected class of the throwable.
      * @throws AssertionError if the throwable is null or not of the expected type.
      */
-    void assertThrowableOfInstance(Throwable throwable, Class<? extends Throwable> expectedThrowableClass) {
-        Assertions.assertNotNull(throwable, "should have a throwable");
+    void assertThrowableOfInstance(MockLoggerEvent event, Throwable throwable, Class<? extends Throwable> expectedThrowableClass) {
+        Assertions.assertNotNull(throwable, String.format("should have a throwable at eventIndex %d", event.getEventIndex()));
         Assertions.assertTrue(expectedThrowableClass.isInstance(throwable),
-                String.format("should have expected throwable type; expected: %s, actual: %s",
-                        expectedThrowableClass.getName(), throwable.getClass().getName()));
+                String.format("should have expected throwable type at eventIndex %d; expected: %s, actual: %s",
+                        event.getEventIndex(), expectedThrowableClass.getName(), throwable.getClass().getName()));
     }
 
     /**
      * Asserts that a {@link Throwable}'s message contains all the specified message parts.
      *
+     * @param event                 the log event to check.
      * @param throwable             the throwable to check.
      * @param throwableMessageParts the substrings expected to be in the throwable's message.
      * @throws AssertionError if the throwable's message does not contain all parts.
      */
-    void assertThrowableHasMessageParts(Throwable throwable, String[] throwableMessageParts) {
+    void assertThrowableHasMessageParts(MockLoggerEvent event, Throwable throwable, String[] throwableMessageParts) {
         boolean hasAllParts = hasAllMessageParts(throwable, throwableMessageParts);
         Assertions.assertTrue(hasAllParts,
-                String.format("should contain all expected message parts in throwable; expected parts: %s; actual message: %s", String.join(", ", throwableMessageParts), throwable));
+                String.format("should contain all expected message parts in throwable at eventIndex %d; expected parts: %s; actual message: %s", event.getEventIndex(), String.join(", ", throwableMessageParts), throwable));
     }
 
     /**
