@@ -71,10 +71,10 @@ public class AssertLogger {
     }
 
     private static void assertMessageParts(MockLoggerEvent event, String[] messageParts) {
-        final String formattedMessage = event.getFormattedMessage();
-        boolean hasAllParts = Arrays.stream(messageParts).allMatch(formattedMessage::contains);
+        boolean hasAllParts = hasAllMessageParts(event, messageParts);
         Assertions.assertTrue(hasAllParts,
-                String.format("should contain all expected message parts; expected parts: %s; actual message: %s", String.join(", ", messageParts), event.getFormattedMessage()));
+                String.format("should contain all expected message parts; expected parts: %s; actual message: %s",
+                        String.join(", ", messageParts), event.getFormattedMessage()));
     }
 
     private static void assertMarker(MockLoggerEvent event, Marker expectedMarker) {
@@ -87,30 +87,22 @@ public class AssertLogger {
                 String.format("should have expected log level; expected: %s, actual: %s", expectedLevel, event.getLevel()));
     }
 
-    private static void assertThrowableOfInstance(Throwable throwable, Class<? extends Throwable> throwableClass) {
+    private static void assertThrowableOfInstance(Throwable throwable, Class<? extends Throwable> expectedThrowableClass) {
         Assertions.assertNotNull(throwable, "should have a throwable");
-        Assertions.assertTrue(throwableClass.isInstance(throwable),
+        Assertions.assertTrue(expectedThrowableClass.isInstance(throwable),
                 String.format("should have expected throwable type; expected: %s, actual: %s",
-                        throwableClass.getName(), throwable.getClass().getName()));
+                        expectedThrowableClass.getName(), throwable.getClass().getName()));
     }
 
     private static void assertThrowableHasMessageParts(Throwable throwable, String[] throwableMessageParts) {
-        final String actualMessage = throwable.getMessage();
-        Assertions.assertNotNull(actualMessage, "should have throwable message");
-        for (final String messagePart : throwableMessageParts) {
-            Assertions.assertTrue(actualMessage.contains(messagePart),
-                    String.format("should contain expected throwable message part; expected: %s; actual message: %s", messagePart, actualMessage));
-        }
+        boolean hasAllParts = hasAllMessageParts(throwable, throwableMessageParts);
+        Assertions.assertTrue(hasAllParts,
+                String.format("should contain all expected message parts in throwable; expected parts: %s; actual message: %s", String.join(", ", throwableMessageParts), throwable));
     }
 
-    private static boolean hasMessagePart(MockLoggerEvent event, String[] messageParts) {
+    private static boolean hasAllMessageParts(MockLoggerEvent event, String[] messageParts) {
         final String formattedMessage = event.getFormattedMessage();
-        for (final String messagePart : messageParts) {
-            if (!formattedMessage.contains(messagePart)) {
-                return false;
-            }
-        }
-        return true;
+        return Arrays.stream(messageParts).allMatch(formattedMessage::contains);
     }
 
     private static boolean isMarker(MockLoggerEvent event, Marker expectedMarker) {
@@ -125,22 +117,13 @@ public class AssertLogger {
         return expectedLevel == event.getLevel();
     }
 
-    private static boolean isThrowableOfInstance(Throwable throwable, Class<? extends Throwable> throwableClass) {
-        return throwableClass != null && throwableClass.isInstance(throwable);
+    private static boolean isThrowableOfInstance(Throwable throwable, Class<? extends Throwable> expectedThrowableClass) {
+        return expectedThrowableClass != null && expectedThrowableClass.isInstance(throwable);
     }
 
-    private static boolean hasMessagePart(Throwable throwable, String[] messageParts) {
+    private static boolean hasAllMessageParts(Throwable throwable, String[] messageParts) {
         final String message = throwable.getMessage();
-        if (message == null) {
-            // Exceptions with no message
-            return false;
-        }
-        for (final String messagePart : messageParts) {
-            if (!message.contains(messagePart)) {
-                return false;
-            }
-        }
-        return true;
+        return message != null && Arrays.stream(messageParts).allMatch(message::contains);
     }
 
 
@@ -236,7 +219,7 @@ public class AssertLogger {
      */
     public void assertHasEvent(final Logger logger, final String... messageParts) {
         final boolean hasEvent = loggerToEvents(logger).stream()
-            .anyMatch(event -> hasMessagePart(event, messageParts));
+            .anyMatch(event -> hasAllMessageParts(event, messageParts));
         Assertions.assertTrue(hasEvent, 
             String.format("should have at least one event containing expected message parts; expected: %s", String.join(", ", messageParts)));
     }
@@ -264,7 +247,7 @@ public class AssertLogger {
     public void assertHasEvent(final Logger logger, final Level expectedLevel, final String... messageParts) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-            .anyMatch(event -> isLevel(event, expectedLevel) && hasMessagePart(event, messageParts));
+            .anyMatch(event -> isLevel(event, expectedLevel) && hasAllMessageParts(event, messageParts));
         Assertions.assertTrue(hasEvent, 
             String.format("should have at least one event with expected level and message parts; expected level: %s, expected messages: %s", 
                 expectedLevel, String.join(", ", messageParts)));
@@ -282,7 +265,7 @@ public class AssertLogger {
     public void assertHasEvent(final Logger logger, final Marker expectedMarker, final String... messageParts) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-            .anyMatch(event -> isMarker(event, expectedMarker) && hasMessagePart(event, messageParts));
+            .anyMatch(event -> isMarker(event, expectedMarker) && hasAllMessageParts(event, messageParts));
         Assertions.assertTrue(hasEvent, 
             String.format("should have at least one event with expected marker and message parts; expected marker: %s, expected messages: %s", 
                 expectedMarker, String.join(", ", messageParts)));
@@ -299,7 +282,7 @@ public class AssertLogger {
     public void assertHasEvent(final Logger logger, final Level expectedLevel, final Marker expectedMarker, final String... messageParts) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-            .anyMatch(event -> isLevel(event, expectedLevel) && isMarkerOrNull(expectedMarker, event) && hasMessagePart(event, messageParts));
+            .anyMatch(event -> isLevel(event, expectedLevel) && isMarkerOrNull(expectedMarker, event) && hasAllMessageParts(event, messageParts));
         Assertions.assertTrue(hasEvent, 
             String.format("should have at least one event with expected level, marker and all message parts; expected level: %s, expected marker: %s, expected messages: %s", 
                 expectedLevel, expectedMarker, String.join(", ", messageParts)));
@@ -328,12 +311,12 @@ public class AssertLogger {
      *
      * @param logger           the Logger instance to check (must be a MockLogger)
      * @param eventIndex       the index of the event to check
-     * @param throwableClass   the expected throwable class
+     * @param expectedThrowableClass   the expected throwable class
      */
-    public void assertEventWithThrowable(final Logger logger, final int eventIndex, final Class<? extends Throwable> throwableClass) {
+    public void assertEventWithThrowable(final Logger logger, final int eventIndex, final Class<? extends Throwable> expectedThrowableClass) {
         final MockLoggerEvent event = loggerIndexToEvent(logger, eventIndex);
         final Throwable throwable = event.getThrowable();
-        assertThrowableOfInstance(throwable, throwableClass);
+        assertThrowableOfInstance(throwable, expectedThrowableClass);
     }
 
     public void assertEventWithThrowable(final Logger logger, final int eventIndex, final String... throwableMessageParts) {
@@ -347,13 +330,13 @@ public class AssertLogger {
      *
      * @param logger                the Logger instance to check (must be a MockLogger)
      * @param eventIndex            the index of the event to check
-     * @param throwableClass        the expected throwable class
+     * @param expectedThrowableClass        the expected throwable class
      * @param throwableMessageParts a list of substrings that should be present in the throwable's message
      */
-    public void assertEventWithThrowable(final Logger logger, final int eventIndex, final Class<? extends Throwable> throwableClass, final String... throwableMessageParts) {
+    public void assertEventWithThrowable(final Logger logger, final int eventIndex, final Class<? extends Throwable> expectedThrowableClass, final String... throwableMessageParts) {
         final MockLoggerEvent event = loggerIndexToEvent(logger, eventIndex);
         final Throwable throwable = event.getThrowable();
-        assertThrowableOfInstance(throwable, throwableClass);
+        assertThrowableOfInstance(throwable, expectedThrowableClass);
         assertThrowableHasMessageParts(throwable, throwableMessageParts);
     }
 
@@ -372,30 +355,30 @@ public class AssertLogger {
      * Asserts that the logger has recorded at least one event with a throwable of the expected type.
      *
      * @param logger           the Logger instance to check (must be a MockLogger)
-     * @param throwableClass   the expected throwable class
+     * @param expectedThrowableClass   the expected throwable class
      */
-    public void assertHasEventWithThrowable(final Logger logger, final Class<? extends Throwable> throwableClass) {
+    public void assertHasEventWithThrowable(final Logger logger, final Class<? extends Throwable> expectedThrowableClass) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-                .anyMatch(event -> isThrowableOfInstance(event.getThrowable(), throwableClass));
+                .anyMatch(event -> isThrowableOfInstance(event.getThrowable(), expectedThrowableClass));
         Assertions.assertTrue(hasEvent, 
-            String.format("should have at least one event with expected throwable type; expected: %s", throwableClass.getName()));
+            String.format("should have at least one event with expected throwable type; expected: %s", expectedThrowableClass.getName()));
     }
 
     /**
      * Asserts that the logger has recorded at least one event with a throwable of the expected type and message parts.
      *
      * @param logger                the Logger instance to check (must be a MockLogger)
-     * @param throwableClass        the expected throwable class
+     * @param expectedThrowableClass        the expected throwable class
      * @param throwableMessageParts a list of substrings that should be present in the throwable's message
      */
-    public void assertHasEventWithThrowable(final Logger logger, final Class<? extends Throwable> throwableClass, final String... throwableMessageParts) {
+    public void assertHasEventWithThrowable(final Logger logger, final Class<? extends Throwable> expectedThrowableClass, final String... throwableMessageParts) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-            .anyMatch(event -> isThrowableOfInstance(event.getThrowable(), throwableClass) && hasMessagePart(event.getThrowable(), throwableMessageParts));
+            .anyMatch(event -> isThrowableOfInstance(event.getThrowable(), expectedThrowableClass) && hasAllMessageParts(event.getThrowable(), throwableMessageParts));
         Assertions.assertTrue(hasEvent, 
             String.format("should have at least one event with expected throwable type and message parts; expected type: %s, expected messages: %s", 
-                throwableClass.getName(), String.join(", ", throwableMessageParts)));
+                expectedThrowableClass.getName(), String.join(", ", throwableMessageParts)));
     }
 
     /**
@@ -415,7 +398,7 @@ public class AssertLogger {
     public void assertNoEvent(final Logger logger, final String... messageParts) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-                .anyMatch(event -> hasMessagePart(event, messageParts));
+                .anyMatch(event -> hasAllMessageParts(event, messageParts));
         Assertions.assertFalse(hasEvent,
             String.format("should have no events containing message parts; unexpected message parts: %s", String.join(", ", messageParts)));
     }
@@ -431,7 +414,7 @@ public class AssertLogger {
     public void assertNoEvent(final Logger logger, final Level expectedLevel, final String... messageParts) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-                .anyMatch(event -> isLevel(event, expectedLevel) && hasMessagePart(event, messageParts));
+                .anyMatch(event -> isLevel(event, expectedLevel) && hasAllMessageParts(event, messageParts));
         Assertions.assertFalse(hasEvent,
             String.format("should have no events with level and message parts; unexpected level: %s, unexpected messages: %s", expectedLevel, String.join(", ", messageParts)));
     }
@@ -439,7 +422,7 @@ public class AssertLogger {
     public void assertNoEvent(final Logger logger, final Marker expectedMarker, final String... messageParts) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-            .anyMatch(event -> isMarker(event, expectedMarker) && hasMessagePart(event, messageParts));
+            .anyMatch(event -> isMarker(event, expectedMarker) && hasAllMessageParts(event, messageParts));
         Assertions.assertFalse(hasEvent,
             String.format("should have no events with marker and message parts; unexpected marker: %s, unexpected messages: %s", expectedMarker, String.join(", ", messageParts)));
     }
@@ -447,7 +430,7 @@ public class AssertLogger {
     public void assertNoEvent(final Logger logger, final Level expectedLevel, final Marker expectedMarker, final String... messageParts) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-            .anyMatch(event -> isLevel(event, expectedLevel) && isMarker(event, expectedMarker) && hasMessagePart(event, messageParts));
+            .anyMatch(event -> isLevel(event, expectedLevel) && isMarker(event, expectedMarker) && hasAllMessageParts(event, messageParts));
         Assertions.assertFalse(hasEvent,
             String.format("should have no events with level, marker and message parts; unexpected level: %s, unexpected marker: %s, unexpected messages: %s", expectedLevel, expectedMarker, String.join(", ", messageParts)));
     }
@@ -467,24 +450,24 @@ public class AssertLogger {
         Assertions.assertFalse(hasEvent, "should have no events with a throwable");
     }
 
-    public void assertNoEventWithThrowable(final Logger logger, final Class<? extends Throwable> throwableClass) {
+    public void assertNoEventWithThrowable(final Logger logger, final Class<? extends Throwable> expectedThrowableClass) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-            .anyMatch(event -> isThrowableOfInstance(event.getThrowable(), throwableClass));
-        Assertions.assertFalse(hasEvent, String.format("should have no events with throwable type; unexpected type: %s", throwableClass.getName()));
+            .anyMatch(event -> isThrowableOfInstance(event.getThrowable(), expectedThrowableClass));
+        Assertions.assertFalse(hasEvent, String.format("should have no events with throwable type; unexpected type: %s", expectedThrowableClass.getName()));
     }
 
-    public void assertNoEventWithThrowable(final Logger logger, final Class<? extends Throwable> throwableClass, final String... throwableMessageParts) {
+    public void assertNoEventWithThrowable(final Logger logger, final Class<? extends Throwable> expectedThrowableClass, final String... throwableMessageParts) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-            .anyMatch(event -> isThrowableOfInstance(event.getThrowable(), throwableClass) && hasMessagePart(event.getThrowable(), throwableMessageParts));
-        Assertions.assertFalse(hasEvent, String.format("should have no events with throwable type and message parts; unexpected type: %s, unexpected messages: %s", throwableClass.getName(), String.join(", ", throwableMessageParts)));
+            .anyMatch(event -> isThrowableOfInstance(event.getThrowable(), expectedThrowableClass) && hasAllMessageParts(event.getThrowable(), throwableMessageParts));
+        Assertions.assertFalse(hasEvent, String.format("should have no events with throwable type and message parts; unexpected type: %s, unexpected messages: %s", expectedThrowableClass.getName(), String.join(", ", throwableMessageParts)));
     }
 
     public void assertNoEventWithThrowable(final Logger logger, final String... throwableMessageParts) {
         final List<MockLoggerEvent> loggerEvents = loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
-                .anyMatch(event -> hasMessagePart(event.getThrowable(), throwableMessageParts));
+                .anyMatch(event -> hasAllMessageParts(event.getThrowable(), throwableMessageParts));
         Assertions.assertFalse(hasEvent, String.format("should have no events with throwable type and message parts; unexpected messages: %s", String.join(", ", throwableMessageParts)));
     }
 
@@ -551,25 +534,25 @@ public class AssertLogger {
         Assertions.assertNull(event.getThrowable(), String.format("event at index %d should NOT have a throwable; actual: %s", eventIndex, event.getThrowable()));
     }
 
-    public void assertEventNotWithThrowable(final Logger logger, final int eventIndex, final Class<? extends Throwable> throwableClass) {
+    public void assertEventNotWithThrowable(final Logger logger, final int eventIndex, final Class<? extends Throwable> expectedThrowableClass) {
         final MockLoggerEvent event = loggerIndexToEvent(logger, eventIndex);
         final Throwable throwable = event.getThrowable();
-        Assertions.assertFalse(throwable != null && throwableClass.isInstance(throwable),
-            String.format("event at index %d should NOT have throwable of type %s; actual: %s", eventIndex, throwableClass.getName(), throwable == null ? "null" : throwable.getClass().getName()));
+        Assertions.assertFalse(throwable != null && expectedThrowableClass.isInstance(throwable),
+            String.format("event at index %d should NOT have throwable of type %s; actual: %s", eventIndex, expectedThrowableClass.getName(), throwable == null ? "null" : throwable.getClass().getName()));
     }
 
-    public void assertEventNotWithThrowable(final Logger logger, final int eventIndex, final Class<? extends Throwable> throwableClass, final String... throwableMessageParts) {
+    public void assertEventNotWithThrowable(final Logger logger, final int eventIndex, final Class<? extends Throwable> expectedThrowableClass, final String... throwableMessageParts) {
         final MockLoggerEvent event = loggerIndexToEvent(logger, eventIndex);
         final Throwable throwable = event.getThrowable();
         if (throwable == null) {
             return; // null throwable already satisfies 'not' condition
         }
-        if (!throwableClass.isInstance(throwable)) {
+        if (!expectedThrowableClass.isInstance(throwable)) {
             return; // different type, also satisfies 'not' condition
         }
         final String actualMessage = throwable.getMessage();
         final boolean matchesMessage = actualMessage != null && java.util.Arrays.stream(throwableMessageParts).allMatch(part -> actualMessage.contains(part));
-        Assertions.assertFalse(matchesMessage, String.format("event at index %d should NOT have throwable of type %s with message parts %s; actual throwable message: %s", eventIndex, throwableClass.getName(), String.join(", ", throwableMessageParts), actualMessage));
+        Assertions.assertFalse(matchesMessage, String.format("event at index %d should NOT have throwable of type %s with message parts %s; actual throwable message: %s", eventIndex, expectedThrowableClass.getName(), String.join(", ", throwableMessageParts), actualMessage));
     }
 
     // Methods for asserting event counts
