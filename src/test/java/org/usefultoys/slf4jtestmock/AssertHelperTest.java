@@ -25,7 +25,7 @@
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT of THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.impl.MockLoggerEvent;
+import org.slf4j.impl.testutils.AIGenerated;
 
 import java.util.Collections;
 
@@ -266,6 +267,124 @@ class AssertHelperTest {
         void shouldReturnFalseForNullMessage() {
             final Throwable throwableWithoutMessage = new RuntimeException();
             assertFalse(AssertHelper.hasAllMessageParts(throwableWithoutMessage, new String[]{"error"}), "should be false for null message");
+        }
+    }
+
+    @Nested
+    @DisplayName("assertMessagePartsNot() tests")
+    class AssertMessagePartsNotTest {
+        @Test
+        @DisplayName("should pass if message does not contain all parts")
+        void shouldPassWhenPartsNotPresent() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.INFO, null, "This is a test message.", null);
+            assertDoesNotThrow(() -> AssertHelper.assertMessagePartsNot(event, new String[]{"This is", "another message"}), "should not throw when parts are not present");
+        }
+
+        @Test
+        @DisplayName("should fail if message contains all parts")
+        void shouldFailWhenAllPartsPresent() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.INFO, null, "This is a test message.", null);
+            assertThrows(AssertionError.class, () -> AssertHelper.assertMessagePartsNot(event, new String[]{"This is", "test message"}), "should throw when all parts are present");
+        }
+    }
+
+    @Nested
+    @DisplayName("assertMarkerNot() tests")
+    class AssertMarkerNotTest {
+        @Test
+        @DisplayName("should pass if markers are different")
+        void shouldPassForDifferentMarker() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.INFO, MARKER_1, "message", null);
+            assertDoesNotThrow(() -> AssertHelper.assertMarkerNot(event, MARKER_2), "should not throw for different marker");
+        }
+
+        @Test
+        @DisplayName("should fail if markers are the same")
+        void shouldFailForSameMarker() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.INFO, MARKER_1, "message", null);
+            assertThrows(AssertionError.class, () -> AssertHelper.assertMarkerNot(event, MARKER_1), "should throw for same marker");
+        }
+    }
+
+    @Nested
+    @DisplayName("assertLevelNot() tests")
+    class AssertLevelNotTest {
+        @Test
+        @DisplayName("should pass if levels are different")
+        void shouldPassForDifferentLevel() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.INFO, null, "message", null);
+            assertDoesNotThrow(() -> AssertHelper.assertLevelNot(event, MockLoggerEvent.Level.WARN), "should not throw for different level");
+        }
+
+        @Test
+        @DisplayName("should fail if levels are the same")
+        void shouldFailForSameLevel() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.INFO, null, "message", null);
+            assertThrows(AssertionError.class, () -> AssertHelper.assertLevelNot(event, MockLoggerEvent.Level.INFO), "should throw for same level");
+        }
+    }
+
+    @Nested
+    @DisplayName("assertThrowableNotOfInstance() tests")
+    class AssertThrowableNotOfInstanceTest {
+        @Test
+        @DisplayName("should pass for a different class")
+        void shouldPassForDifferentClass() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.ERROR, null, "message", new IllegalArgumentException("error"));
+            final Throwable throwable = event.getThrowable();
+            assertDoesNotThrow(() -> AssertHelper.assertThrowableNotOfInstance(event, throwable, IllegalStateException.class), "should not throw for different class");
+        }
+
+        @Test
+        @DisplayName("should pass if throwable is null")
+        void shouldPassForNullThrowable() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.ERROR, null, "message", null);
+            final Throwable throwable = event.getThrowable();
+            assertDoesNotThrow(() -> AssertHelper.assertThrowableNotOfInstance(event, throwable, IllegalArgumentException.class), "should not throw for null throwable");
+        }
+
+        @Test
+        @DisplayName("should fail for the same class")
+        void shouldFailForSameClass() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.ERROR, null, "message", new IllegalArgumentException("error"));
+            final Throwable throwable = event.getThrowable();
+            assertThrows(AssertionError.class, () -> AssertHelper.assertThrowableNotOfInstance(event, throwable, IllegalArgumentException.class), "should throw for same class");
+        }
+
+        @Test
+        @DisplayName("should fail for a superclass")
+        void shouldFailForSuperclass() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.ERROR, null, "message", new IllegalArgumentException("error"));
+            final Throwable throwable = event.getThrowable();
+            assertThrows(AssertionError.class, () -> AssertHelper.assertThrowableNotOfInstance(event, throwable, RuntimeException.class), "should throw for superclass");
+        }
+    }
+
+    @Nested
+    @DisplayName("assertThrowableHasMessagePartsNot() tests")
+    class AssertThrowableHasMessagePartsNotTest {
+        @Test
+        @DisplayName("should pass if throwable message does not contain all parts")
+        void shouldPassWhenPartsNotPresent() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.ERROR, null, "message", new RuntimeException("This is an error."));
+            final Throwable throwable = event.getThrowable();
+            assertDoesNotThrow(() -> AssertHelper.assertThrowableHasMessagePartsNot(event, throwable, new String[]{"is an", "mistake"}), "should not throw when parts are not present");
+        }
+
+        @Test
+        @DisplayName("should pass if throwable is null")
+        void shouldPassForNullThrowable() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.ERROR, null, "message", null);
+            final Throwable throwable = event.getThrowable();
+            assertDoesNotThrow(() -> AssertHelper.assertThrowableHasMessagePartsNot(event, throwable, new String[]{"error"}), "should not throw for null throwable");
+        }
+
+        @Test
+        @DisplayName("should fail if throwable message contains all parts")
+        void shouldFailWhenAllPartsPresent() {
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.ERROR, null, "message", new RuntimeException("This is an error."));
+            final Throwable throwable = event.getThrowable();
+            assertThrows(AssertionError.class, () -> AssertHelper.assertThrowableHasMessagePartsNot(event, throwable, new String[]{"is an", "error"}), "should throw when all parts are present");
         }
     }
 }
