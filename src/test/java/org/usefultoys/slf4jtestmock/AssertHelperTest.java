@@ -53,7 +53,7 @@ class AssertHelperTest {
     private static final Marker MARKER_2 = MarkerFactory.getMarker("MARKER_2");
 
     private MockLoggerEvent createEvent(MockLoggerEvent.Level level, Marker marker, String message, Throwable throwable) {
-        return new MockLoggerEvent("test-logger", level, Collections.emptyMap(), marker, throwable, message);
+        return new MockLoggerEvent(0, "test-logger", level, Collections.emptyMap(), marker, throwable, message);
     }
 
     @Nested
