@@ -17,7 +17,6 @@ package org.slf4j.impl;
 
 import lombok.Getter;
 import lombok.Setter;
-
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.impl.MockLoggerEvent.Level;
@@ -456,19 +455,20 @@ public class MockLogger implements Logger {
      * @param args      the message arguments
      */
     private void addLoggingEvent(
-            final Level level,
-            final Marker marker,
-            final Throwable throwable,
-            final String format,
-            final Object... args) {
-        // Check if the level is enabled before recording the event
-        if (!isLevelEnabled(level)) {
-            return;
-        }
-        final MockLoggerEvent event = new MockLoggerEvent(name, level, null, marker, throwable, format, args);
-        loggerEvents.add(event);
-        print(event);
-    }
+             final Level level,
+             final Marker marker,
+             final Throwable throwable,
+             final String format,
+             final Object... args) {
+         // Check if the level is enabled before recording the event
+         if (!isLevelEnabled(level)) {
+             return;
+         }
+         final int index = loggerEvents.size();
+         final MockLoggerEvent event = new MockLoggerEvent(index, name, level, null, marker, throwable, format, args);
+         loggerEvents.add(event);
+         print(event);
+     }
 
     /**
      * Checks if a specific log level is enabled.
