@@ -116,18 +116,20 @@ class AssertHelperTest {
         @Test
         @DisplayName("should pass for same class or superclass")
         void shouldPassForSameOrSuperclass() {
-            final Throwable throwable = new IllegalArgumentException("error");
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.ERROR, null, "message", new IllegalArgumentException("error"));
+            final Throwable throwable = event.getThrowable();
             assertAll("should pass for valid class hierarchies",
-                    () -> assertDoesNotThrow(() -> AssertHelper.assertThrowableOfInstance(throwable, IllegalArgumentException.class), "should pass for same class"),
-                    () -> assertDoesNotThrow(() -> AssertHelper.assertThrowableOfInstance(throwable, RuntimeException.class), "should pass for superclass")
+                    () -> assertDoesNotThrow(() -> AssertHelper.assertThrowableOfInstance(event, throwable, IllegalArgumentException.class), "should pass for same class"),
+                    () -> assertDoesNotThrow(() -> AssertHelper.assertThrowableOfInstance(event, throwable, RuntimeException.class), "should pass for superclass")
             );
         }
 
         @Test
         @DisplayName("should fail for a different class")
         void shouldFailForWrongType() {
-            final Throwable throwable = new IllegalArgumentException("error");
-            assertThrows(AssertionError.class, () -> AssertHelper.assertThrowableOfInstance(throwable, IllegalStateException.class), "should throw for different class");
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.ERROR, null, "message", new IllegalArgumentException("error"));
+            final Throwable throwable = event.getThrowable();
+            assertThrows(AssertionError.class, () -> AssertHelper.assertThrowableOfInstance(event, throwable, IllegalStateException.class), "should throw for different class");
         }
     }
 
@@ -137,15 +139,17 @@ class AssertHelperTest {
         @Test
         @DisplayName("should pass if throwable message contains all parts")
         void shouldPassWhenAllPartsPresent() {
-            final Throwable throwable = new RuntimeException("This is an error.");
-            assertDoesNotThrow(() -> AssertHelper.assertThrowableHasMessageParts(throwable, new String[]{"is an", "error"}), "should not throw when parts are present");
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.ERROR, null, "message", new RuntimeException("This is an error."));
+            final Throwable throwable = event.getThrowable();
+            assertDoesNotThrow(() -> AssertHelper.assertThrowableHasMessageParts(event, throwable, new String[]{"is an", "error"}), "should not throw when parts are present");
         }
 
         @Test
         @DisplayName("should fail if throwable message does not contain all parts")
         void shouldFailWhenNotAllPartsPresent() {
-            final Throwable throwable = new RuntimeException("This is an error.");
-            assertThrows(AssertionError.class, () -> AssertHelper.assertThrowableHasMessageParts(throwable, new String[]{"is an", "mistake"}), "should throw when parts are missing");
+            final MockLoggerEvent event = createEvent(MockLoggerEvent.Level.ERROR, null, "message", new RuntimeException("This is an error."));
+            final Throwable throwable = event.getThrowable();
+            assertThrows(AssertionError.class, () -> AssertHelper.assertThrowableHasMessageParts(event, throwable, new String[]{"is an", "mistake"}), "should throw when parts are missing");
         }
     }
 
