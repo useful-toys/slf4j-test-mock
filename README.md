@@ -501,4 +501,20 @@ Licensed under the Apache License, Version 2.0. See the [LICENSE](../LICENSE) fi
 
 ## Contributing
 
-This library follows the project's [GitHub Copilot Instructions](../.github/copilot-instructions.md) for code style and development practices.
+This library follows structured guidelines for code style and development practices.
+
+### AI Instructions
+
+The project provides instructions for AI assistants to maintain consistency:
+
+- **[AI-INSTRUCTIONS.md](AI-INSTRUCTIONS.md)** - Shared instructions for all AI assistants (Gemini, Copilot, etc.)
+- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - GitHub Copilot-specific instructions (official location)
+- **[GEMINI.md](GEMINI.md)** - Google Gemini-specific instructions
+
+Key guidelines include:
+- Use Java 8
+- Always use Maven wrapper (`mvnw.cmd` on Windows, `./mvnw` on Unix)
+- Prefer Lombok annotations to reduce boilerplate
+- Maintain >95% test coverage with JUnit 5
+- Use `@DisplayName` for descriptive test names
+- Document all classes and members with Javadoc
