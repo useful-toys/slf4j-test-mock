@@ -110,9 +110,7 @@ public class MockLoggerExtension implements
         final Class<?> testClass = extensionContext.getRequiredTestClass();
         final Logger logger = createAndConfigureLogger(parameter, testClass, parameter.getName());
 
-        if (MockLogger.class.equals(parameter.getType())) {
-            return logger;
-        }
+        parameter.getType();
         return logger;
     }
 
@@ -243,7 +241,7 @@ public class MockLoggerExtension implements
             m.invoke(mock, Boolean.valueOf(value));
         } catch (final NoSuchMethodException e) {
             // Version of the library without this method – ignore
-        } catch (SecurityException e) {
+        } catch (final SecurityException e) {
             throw new RuntimeException(e);
         } catch (final Exception e) {
             throw new ExtensionConfigurationException("Error invoking " + methodName, e);

@@ -15,9 +15,9 @@
  */
 package org.slf4j.impl;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +41,9 @@ class MockMDCAdapterTest {
     @BeforeEach
     void setUp() {
         mdcAdapter = new MockMDCAdapter();
+        // Clear ThreadLocal to prevent data leakage between tests
+        // This is necessary because the ThreadLocal is static
+        mdcAdapter.clearAll();
     }
 
     @Test
@@ -296,5 +299,39 @@ class MockMDCAdapterTest {
         
         // Then
         assertEquals(specialValue, mdcAdapter.get(specialKey));
+    }
+
+    @Test
+    @DisplayName("Should clear ThreadLocal with clearAll")
+    void shouldClearThreadLocalWithClearAll() {
+        // Given
+        mdcAdapter.put("key1", "value1");
+        mdcAdapter.put("key2", "value2");
+        assertEquals("value1", mdcAdapter.get("key1"));
+
+        // When
+        mdcAdapter.clearAll();
+
+        // Then
+        // After clearAll, the ThreadLocal is removed, so getCopyOfContextMap should return an empty map
+        Map<String, String> contextMap = mdcAdapter.getCopyOfContextMap();
+        assertTrue(contextMap.isEmpty());
+        assertNull(mdcAdapter.get("key1"));
+        assertNull(mdcAdapter.get("key2"));
+    }
+
+    @Test
+    @DisplayName("Should allow reuse after clearAll")
+    void shouldAllowReuseAfterClearAll() {
+        // Given
+        mdcAdapter.put("key1", "value1");
+        mdcAdapter.clearAll();
+
+        // When
+        mdcAdapter.put("key2", "value2");
+
+        // Then
+        assertNull(mdcAdapter.get("key1"));
+        assertEquals("value2", mdcAdapter.get("key2"));
     }
 }
