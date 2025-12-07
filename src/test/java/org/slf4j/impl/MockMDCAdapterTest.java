@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -333,5 +334,248 @@ class MockMDCAdapterTest {
         // Then
         assertNull(mdcAdapter.get("key1"));
         assertEquals("value2", mdcAdapter.get("key2"));
+    }
+
+    // SLF4J 2.0 Deque Support Tests
+
+    @Test
+    @DisplayName("Should push and pop values from deque")
+    void shouldPushAndPopValuesFromDeque() {
+        // When
+        mdcAdapter.pushByKey("key1", "value1");
+        mdcAdapter.pushByKey("key1", "value2");
+        mdcAdapter.pushByKey("key1", "value3");
+
+        // Then
+        assertEquals("value3", mdcAdapter.popByKey("key1"), "should pop last pushed value");
+        assertEquals("value2", mdcAdapter.popByKey("key1"), "should pop second value");
+        assertEquals("value1", mdcAdapter.popByKey("key1"), "should pop first value");
+    }
+
+    @Test
+    @DisplayName("Should return null when popping from empty deque")
+    void shouldReturnNullWhenPoppingFromEmptyDeque() {
+        // When/Then
+        assertNull(mdcAdapter.popByKey("nonexistent"), "should return null for non-existent key");
+
+        // Given
+        mdcAdapter.pushByKey("key1", "value1");
+        mdcAdapter.popByKey("key1");
+
+        // Then
+        assertNull(mdcAdapter.popByKey("key1"), "should return null when deque is empty");
+    }
+
+    @Test
+    @DisplayName("Should get copy of deque by key")
+    void shouldGetCopyOfDequeByKey() {
+        // Given
+        mdcAdapter.pushByKey("key1", "value1");
+        mdcAdapter.pushByKey("key1", "value2");
+        mdcAdapter.pushByKey("key1", "value3");
+
+        // When
+        final Deque<String> deque = mdcAdapter.getCopyOfDequeByKey("key1");
+
+        // Then
+        assertNotNull(deque, "should return deque for existing key");
+        assertEquals(3, deque.size(), "should contain all pushed values");
+        assertEquals("value3", deque.pop(), "should return values in LIFO order");
+        assertEquals("value2", deque.pop(), "should return values in LIFO order");
+        assertEquals("value1", deque.pop(), "should return values in LIFO order");
+
+        // Verify it's a copy (modifications don't affect original)
+        mdcAdapter.pushByKey("key1", "value4");
+        assertEquals("value4", mdcAdapter.popByKey("key1"), "should have new value in original");
+    }
+
+    @Test
+    @DisplayName("Should return null for non-existent deque")
+    void shouldReturnNullForNonExistentDeque() {
+        // When/Then
+        assertNull(mdcAdapter.getCopyOfDequeByKey("nonexistent"), "should return null for non-existent key");
+    }
+
+    @Test
+    @DisplayName("Should clear deque by key")
+    void shouldClearDequeByKey() {
+        // Given
+        mdcAdapter.pushByKey("key1", "value1");
+        mdcAdapter.pushByKey("key1", "value2");
+        mdcAdapter.pushByKey("key2", "value3");
+
+        // When
+        mdcAdapter.clearDequeByKey("key1");
+
+        // Then
+        assertNull(mdcAdapter.popByKey("key1"), "should return null after clearing deque");
+        assertEquals("value3", mdcAdapter.popByKey("key2"), "should not affect other deques");
+    }
+
+    @Test
+    @DisplayName("Should handle clearing non-existent deque gracefully")
+    void shouldHandleClearingNonExistentDequeGracefully() {
+        // When/Then
+        assertDoesNotThrow(() -> mdcAdapter.clearDequeByKey("nonexistent"), "should not throw exception");
+    }
+
+    @Test
+    @DisplayName("Should handle multiple deques independently")
+    void shouldHandleMultipleDequesIndependently() {
+        // Given
+        mdcAdapter.pushByKey("key1", "value1a");
+        mdcAdapter.pushByKey("key1", "value1b");
+        mdcAdapter.pushByKey("key2", "value2a");
+        mdcAdapter.pushByKey("key2", "value2b");
+        mdcAdapter.pushByKey("key3", "value3a");
+
+        // When/Then
+        assertEquals("value1b", mdcAdapter.popByKey("key1"), "should pop from key1");
+        assertEquals("value2b", mdcAdapter.popByKey("key2"), "should pop from key2");
+        assertEquals("value3a", mdcAdapter.popByKey("key3"), "should pop from key3");
+        assertEquals("value1a", mdcAdapter.popByKey("key1"), "should pop remaining from key1");
+        assertEquals("value2a", mdcAdapter.popByKey("key2"), "should pop remaining from key2");
+    }
+
+    @Test
+    @DisplayName("Should handle null values in deque push")
+    void shouldHandleNullValuesInDequePush() {
+        // When
+        mdcAdapter.pushByKey("key1", null);
+        mdcAdapter.pushByKey("key1", "value1");
+
+        // Then
+        assertEquals("value1", mdcAdapter.popByKey("key1"), "should pop non-null value");
+        assertNull(mdcAdapter.popByKey("key1"), "should pop null value");
+    }
+
+    @Test
+    @DisplayName("Should handle null key in deque operations")
+    void shouldHandleNullKeyInDequeOperations() {
+        // When
+        mdcAdapter.pushByKey(null, "value1");
+        mdcAdapter.pushByKey(null, "value2");
+
+        // Then
+        assertEquals("value2", mdcAdapter.popByKey(null), "should handle null key");
+        assertEquals("value1", mdcAdapter.popByKey(null), "should handle null key");
+    }
+
+    @Test
+    @DisplayName("Should isolate deques between threads")
+    void shouldIsolateDequessBetweenThreads() throws InterruptedException {
+        // Given
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        CountDownLatch latch = new CountDownLatch(2);
+        String[] thread1Result = new String[1];
+        String[] thread2Result = new String[1];
+
+        // When
+        executor.submit(() -> {
+            try {
+                mdcAdapter.pushByKey("threadKey", "thread1Value1");
+                mdcAdapter.pushByKey("threadKey", "thread1Value2");
+                Thread.sleep(100);
+                thread1Result[0] = mdcAdapter.popByKey("threadKey");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                latch.countDown();
+            }
+        });
+
+        executor.submit(() -> {
+            try {
+                mdcAdapter.pushByKey("threadKey", "thread2Value1");
+                mdcAdapter.pushByKey("threadKey", "thread2Value2");
+                Thread.sleep(100);
+                thread2Result[0] = mdcAdapter.popByKey("threadKey");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                latch.countDown();
+            }
+        });
+
+        // Then
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "should complete within timeout");
+        executor.shutdown();
+
+        assertEquals("thread1Value2", thread1Result[0], "should isolate thread 1 deque");
+        assertEquals("thread2Value2", thread2Result[0], "should isolate thread 2 deque");
+    }
+
+    @Test
+    @DisplayName("Should clear both context map and deques with clearAll")
+    void shouldClearBothContextMapAndDequesWithClearAll() {
+        // Given
+        mdcAdapter.put("key1", "value1");
+        mdcAdapter.pushByKey("dequeKey", "dequeValue1");
+        mdcAdapter.pushByKey("dequeKey", "dequeValue2");
+
+        // When
+        mdcAdapter.clearAll();
+
+        // Then
+        assertNull(mdcAdapter.get("key1"), "should clear context map");
+        assertNull(mdcAdapter.popByKey("dequeKey"), "should clear deques");
+        assertTrue(mdcAdapter.getCopyOfContextMap().isEmpty(), "should have empty context map");
+    }
+
+    @Test
+    @DisplayName("Should allow pushing multiple values with same content")
+    void shouldAllowPushingMultipleValuesWithSameContent() {
+        // Given
+        String sameValue = "sameValue";
+
+        // When
+        mdcAdapter.pushByKey("key1", sameValue);
+        mdcAdapter.pushByKey("key1", sameValue);
+        mdcAdapter.pushByKey("key1", sameValue);
+
+        // Then
+        assertEquals(sameValue, mdcAdapter.popByKey("key1"), "should pop first duplicate");
+        assertEquals(sameValue, mdcAdapter.popByKey("key1"), "should pop second duplicate");
+        assertEquals(sameValue, mdcAdapter.popByKey("key1"), "should pop third duplicate");
+        assertNull(mdcAdapter.popByKey("key1"), "should be empty after popping all");
+    }
+
+    @Test
+    @DisplayName("Should maintain deque order correctly")
+    void shouldMaintainDequeOrderCorrectly() {
+        // Given
+        int numValues = 100;
+
+        // When
+        for (int i = 0; i < numValues; i++) {
+            mdcAdapter.pushByKey("key1", "value" + i);
+        }
+
+        // Then
+        for (int i = numValues - 1; i >= 0; i--) {
+            assertEquals("value" + i, mdcAdapter.popByKey("key1"),
+                "should maintain LIFO order for value" + i);
+        }
+        assertNull(mdcAdapter.popByKey("key1"), "should be empty after popping all values");
+    }
+
+    @Test
+    @DisplayName("Should handle mixed operations on deque")
+    void shouldHandleMixedOperationsOnDeque() {
+        // When/Then
+        mdcAdapter.pushByKey("key1", "value1");
+        assertEquals("value1", mdcAdapter.popByKey("key1"), "should pop value1");
+
+        mdcAdapter.pushByKey("key1", "value2");
+        mdcAdapter.pushByKey("key1", "value3");
+        assertEquals("value3", mdcAdapter.popByKey("key1"), "should pop value3");
+
+        mdcAdapter.pushByKey("key1", "value4");
+        final Deque<String> deque = mdcAdapter.getCopyOfDequeByKey("key1");
+        assertNotNull(deque, "should get deque copy");
+        assertEquals(2, deque.size(), "should have 2 remaining values");
+
+        mdcAdapter.clearDequeByKey("key1");
+        assertNull(mdcAdapter.popByKey("key1"), "should be empty after clear");
     }
 }
