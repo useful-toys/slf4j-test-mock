@@ -547,10 +547,9 @@ public class AssertLogger {
 
     /**
      * Asserts that the logger has recorded events in the exact sequence of markers specified.
-     *
--     * @param logger           the Logger instance to check (must be a MockLogger)
--     * @param expectedMarkers  the expected sequence of markers
--     */
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param expectedMarkers  the expected sequence of markers
+     */
     public void assertEventSequence(final @NonNull Logger logger, final @NonNull Marker... expectedMarkers) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
 

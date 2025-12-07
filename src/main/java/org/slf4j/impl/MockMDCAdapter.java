@@ -15,11 +15,12 @@
  */
 package org.slf4j.impl;
 
-import lombok.experimental.FieldDefaults;
 import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
+import org.slf4j.spi.MDCAdapter;
+
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.spi.MDCAdapter;
 
 /**
  * A mock implementation of {@link MDCAdapter} for testing purposes.
@@ -65,12 +66,12 @@ public class MockMDCAdapter implements MDCAdapter {
 
     @Override
 	public void setContextMap(final Map<String, String> contextMap) {
-        value.set(new HashMap<String, String>(contextMap));
+        value.set(new HashMap<>(contextMap));
     }
 
     @Override
 	public Map<String, String> getCopyOfContextMap() {
-        return new HashMap<String, String>(value.get());
+        return new HashMap<>(value.get());
     }
 
 }
