@@ -94,13 +94,6 @@
             <version>${junit5.version}</version>
             <scope>compile</scope>
         </dependency>
-        <!-- Add junit-platform-testkit for testing JUnit extensions -->
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-testkit</artifactId>
-            <version>1.14.1</version> <!-- Use the same version as JUnit 5 -->
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
