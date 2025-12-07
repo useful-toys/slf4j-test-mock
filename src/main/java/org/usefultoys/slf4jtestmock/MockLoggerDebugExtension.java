@@ -56,9 +56,9 @@ public class MockLoggerDebugExtension implements InvocationInterceptor {
     /**
      * Intercepts test method execution to catch assertion errors and print logged events.
      *
-     * @param invocation the invocation to proceed with
+     * @param invocation        the invocation to proceed with
      * @param invocationContext the context of the invocation
-     * @param extensionContext the extension context
+     * @param extensionContext  the extension context
      * @throws Throwable if the test method throws an exception
      */
     @Override
@@ -126,7 +126,7 @@ public class MockLoggerDebugExtension implements InvocationInterceptor {
     /**
      * Prints all logged events from the MockLogger instances to standard error.
      *
-     * @param mockLoggers the list of MockLogger instances to print events from
+     * @param mockLoggers      the list of MockLogger instances to print events from
      * @param extensionContext the extension context for getting test information
      */
     private static void printLoggedEvents(final List<MockLogger> mockLoggers, final ExtensionContext extensionContext) {
@@ -141,9 +141,9 @@ public class MockLoggerDebugExtension implements InvocationInterceptor {
 
         for (int i = 0; i < mockLoggers.size(); i++) {
             final MockLogger logger = mockLoggers.get(i);
-            final String loggerName = logger.getName();
 
             if (mockLoggers.size() > 1) {
+                final String loggerName = logger.getName();
                 System.err.println();
                 System.err.printf("Logger: %s%n", loggerName);
                 System.err.println("────────────────────────────────────────────────────────");
