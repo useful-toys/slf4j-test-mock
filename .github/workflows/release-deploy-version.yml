@@ -58,8 +58,8 @@ jobs:
           server-username: MAVEN_CENTRAL_USERNAME
           server-password: MAVEN_CENTRAL_PASSWORD
 
-      - name: Build and Deploy (with SLF4J 1.7 profile)
-        run: sh mvnw -ntp clean deploy -P release,slf4j-1.7 --batch-mode
+      - name: Build and Deploy (with SLF4J 2.0 profile)
+        run: sh mvnw -ntp clean deploy -P release,slf4j-2.0 --batch-mode
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
