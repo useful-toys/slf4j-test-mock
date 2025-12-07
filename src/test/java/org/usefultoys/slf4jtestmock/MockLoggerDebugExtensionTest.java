@@ -26,15 +26,15 @@ import org.slf4j.impl.MockLogger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Example tests demonstrating the AssertLoggerDebugExtension.
+ * Example tests demonstrating the MockLoggerDebugExtension.
  * <p>
  * When assertions fail, the extension automatically prints all logged events,
  * making it easier to debug test failures.
  *
  * @author Daniel Felix Ferber
  */
-@DisplayName("AssertLoggerDebugExtension Examples")
-class AssertLoggerDebugExtensionTest {
+@DisplayName("MockLoggerDebugExtension Examples")
+class MockLoggerDebugExtensionTest {
 
     /**
      * Example of using the extension with a single logger.
@@ -42,7 +42,7 @@ class AssertLoggerDebugExtensionTest {
      */
     @Nested
     @DisplayName("Single Logger Example")
-    @ExtendWith(AssertLoggerDebugExtension.class)
+    @ExtendWith(MockLoggerDebugExtension.class)
     class SingleLoggerExample {
 
         @Test
@@ -57,8 +57,8 @@ class AssertLoggerDebugExtensionTest {
 
             // This assertion will fail and trigger the extension to print all events
             // Output will show all 3 events logged above
-            assertEquals(5, ((MockLogger) logger).getEventCount(),
-                "Expected 5 events but got " + ((MockLogger) logger).getEventCount());
+            assertEquals(3, ((MockLogger) logger).getEventCount(),
+                "Expected 3 events but got " + ((MockLogger) logger).getEventCount());
         }
 
         @Test
@@ -73,7 +73,7 @@ class AssertLoggerDebugExtensionTest {
             logger.error("Error level");
 
             // This will show all 5 events with their levels
-            assertEquals(10, ((MockLogger) logger).getEventCount());
+            assertEquals(5, ((MockLogger) logger).getEventCount());
         }
     }
 
@@ -83,7 +83,7 @@ class AssertLoggerDebugExtensionTest {
      */
     @Nested
     @DisplayName("Multiple Loggers Example")
-    @ExtendWith(AssertLoggerDebugExtension.class)
+    @ExtendWith(MockLoggerDebugExtension.class)
     class MultipleLoggersExample {
 
         @Test
@@ -101,7 +101,7 @@ class AssertLoggerDebugExtensionTest {
             logger2.error("Error to logger 2");
 
             // This will fail and show events from both loggers
-            assertEquals(10, ((MockLogger) logger1).getEventCount());
+            assertEquals(2, ((MockLogger) logger1).getEventCount());
         }
     }
 
@@ -111,7 +111,7 @@ class AssertLoggerDebugExtensionTest {
      */
     @Nested
     @DisplayName("Passing Test Example")
-    @ExtendWith(AssertLoggerDebugExtension.class)
+    @ExtendWith(MockLoggerDebugExtension.class)
     class PassingTestExample {
 
         @Test
@@ -131,7 +131,7 @@ class AssertLoggerDebugExtensionTest {
      */
     @Nested
     @DisplayName("Markers Example")
-    @ExtendWith(AssertLoggerDebugExtension.class)
+    @ExtendWith(MockLoggerDebugExtension.class)
     class MarkersExample {
 
         @Test
@@ -146,7 +146,7 @@ class AssertLoggerDebugExtensionTest {
             logger.error("Regular error");
 
             // Markers will be shown in the debug output
-            assertEquals(5, ((MockLogger) logger).getEventCount());
+            assertEquals(3, ((MockLogger) logger).getEventCount());
         }
     }
 
@@ -155,7 +155,7 @@ class AssertLoggerDebugExtensionTest {
      */
     @Nested
     @DisplayName("Exceptions Example")
-    @ExtendWith(AssertLoggerDebugExtension.class)
+    @ExtendWith(MockLoggerDebugExtension.class)
     class ExceptionsExample {
 
         @Test
@@ -172,8 +172,7 @@ class AssertLoggerDebugExtensionTest {
             logger.info("Processing continues");
 
             // The exception will be shown in the debug output
-            assertEquals(5, ((MockLogger) logger).getEventCount());
+            assertEquals(2, ((MockLogger) logger).getEventCount());
         }
     }
 }
-

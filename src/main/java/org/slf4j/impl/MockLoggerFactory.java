@@ -20,6 +20,7 @@ import lombok.experimental.FieldDefaults;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -72,5 +73,17 @@ public class MockLoggerFactory implements ILoggerFactory {
         }
         nameToLogger.put(name, logger = new MockLogger(name));
         return logger;
+    }
+
+    /**
+     * Returns an unmodifiable view of the currently created loggers keyed by name.
+     * <p>
+     * This is a test helper which allows other classes (for example JUnit extensions)
+     * to inspect all MockLogger instances created by this factory.
+     *
+     * @return unmodifiable map of logger name to Logger instance
+     */
+    public static Map<String, Logger> getLoggers() {
+        return Collections.unmodifiableMap(instance.nameToLogger);
     }
 }
