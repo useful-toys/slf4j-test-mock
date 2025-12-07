@@ -19,6 +19,8 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.slf4j.spi.MDCAdapter;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,6 +45,12 @@ public class MockMDCAdapter implements MDCAdapter {
      * Thread-local storage for MDC data. Each thread gets its own map instance.
      */
     private static final ThreadLocal<Map<String, String>> value = ThreadLocal.withInitial(HashMap::new);
+
+    /**
+     * Thread-local storage for MDC Deque data. Each thread gets its own map of deques.
+     * This is used for SLF4J 2.0 compatibility.
+     */
+    private static final ThreadLocal<Map<String, Deque<String>>> dequeMap = ThreadLocal.withInitial(HashMap::new);
 
     @Override
 	public void put(final String key, final String val) {
@@ -84,6 +92,66 @@ public class MockMDCAdapter implements MDCAdapter {
      */
     public void clearAll() {
         value.remove();
+        dequeMap.remove();
+    }
+
+    // SLF4J 2.0 Deque support methods
+    // Note: @Override annotations are omitted to maintain compatibility with SLF4J 1.7
+    // where these methods don't exist. In SLF4J 2.0, these will properly override.
+
+    /**
+     * Push a value onto the deque associated with the given key.
+     * This method is part of SLF4J 2.0 API.
+     *
+     * @param key the key
+     * @param val the value to push
+     */
+    public void pushByKey(final String key, final String val) {
+        final Deque<String> deque = dequeMap.get().computeIfAbsent(key, k -> new ArrayDeque<>(4));
+        deque.push(val);
+    }
+
+    /**
+     * Pop a value from the deque associated with the given key.
+     * This method is part of SLF4J 2.0 API.
+     *
+     * @param key the key
+     * @return the popped value, or null if the deque is empty or doesn't exist
+     */
+    public String popByKey(final String key) {
+        final Deque<String> deque = dequeMap.get().get(key);
+        if (deque == null || deque.isEmpty()) {
+            return null;
+        }
+        return deque.pop();
+    }
+
+    /**
+     * Get a copy of the deque associated with the given key.
+     * This method is part of SLF4J 2.0 API.
+     *
+     * @param key the key
+     * @return a copy of the deque, or null if it doesn't exist
+     */
+    public Deque<String> getCopyOfDequeByKey(final String key) {
+        final Deque<String> deque = dequeMap.get().get(key);
+        if (deque == null) {
+            return null;
+        }
+        return new ArrayDeque<>(deque);
+    }
+
+    /**
+     * Clear the deque associated with the given key.
+     * This method is part of SLF4J 2.0 API.
+     *
+     * @param key the key
+     */
+    public void clearDequeByKey(final String key) {
+        final Deque<String> deque = dequeMap.get().get(key);
+        if (deque != null) {
+            deque.clear();
+        }
     }
 
 }
