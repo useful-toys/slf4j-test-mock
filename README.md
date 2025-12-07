@@ -2,16 +2,54 @@
 
 A comprehensive mock implementation of the SLF4J logging framework designed specifically for unit testing. This library provides complete mock implementations of all SLF4J components, allowing developers to capture and inspect log events during test execution.
 
+**Compatible with both SLF4J 1.7.x and 2.0.x** - Works seamlessly with whichever version is on your classpath.
+
 ## Features
 
+- **SLF4J 1.7 & 2.0 Compatible**: Works seamlessly with both SLF4J 1.7.x and 2.0.x
 - **Complete SLF4J Implementation**: Full mock implementations of Logger, LoggerFactory, MDC, and Marker components
 - **Event Capturing**: All log events are captured in memory for test verification
 - **Assertion Utilities**: Rich API for asserting log events with descriptive error messages  
 - **Level Control**: Fine-grained control over which log levels are enabled during tests
 - **Marker Support**: Full support for SLF4J markers in logging and assertions
-- **MDC Support**: Mock implementation of Mapped Diagnostic Context (MDC)
+- **MDC Support**: Mock implementation of Mapped Diagnostic Context (MDC) including SLF4J 2.0 Deque methods
 - **Thread-Safe**: Safe for use in single-threaded test environments
 - **Java 8+ Compatible**: Works with Java 8 and higher versions
+
+## SLF4J Compatibility
+
+This library supports both major versions of the SLF4J API:
+
+- **SLF4J 1.7.x** (tested with 1.7.36) - The traditional version
+- **SLF4J 2.0.x** (tested with 2.0.16) - The modern version with enhanced features
+
+### Which Version Should I Use?
+
+The library automatically works with whichever SLF4J version is on your classpath. Simply add this mock implementation to your test dependencies, and it will integrate seamlessly with your existing SLF4J setup.
+
+**For projects using SLF4J 1.7.x:**
+- Uses traditional Static Binder mechanism
+- Full compatibility with SLF4J 1.7 API
+- Java 8+ compatible
+
+**For projects using SLF4J 2.0.x:**
+- Uses modern Service Provider Interface
+- Supports new SLF4J 2.0 features including MDC Deque methods
+- Java 8+ compatible
+
+### Build from Source
+
+If you're building this library from source and need to test with a specific SLF4J version:
+
+```bash
+# Build with SLF4J 1.7.x (default)
+mvn clean install
+
+# Build with SLF4J 2.0.x
+mvn clean install -P slf4j-2.0
+```
+
+For more details on the multi-version support strategy, see [ADR-0004: Multiple SLF4J Version Support](ADR-0004-multiple-slf4j-version-support.md) and [BUILD-PROFILES.md](BUILD-PROFILES.md).
 
 ## Maven Dependency
 
@@ -19,7 +57,7 @@ A comprehensive mock implementation of the SLF4J logging framework designed spec
 <dependency>
     <groupId>org.usefultoys</groupId>
     <artifactId>slf4j-test-mock</artifactId>
-    <version>1.9.0</version>
+    <version>0.0.2</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -491,9 +529,68 @@ For example, use unique logger names per test class or method.
 ## Requirements
 
 - Java 8 or higher
-- SLF4J API 1.7.28+
+- SLF4J API 1.7.x or 2.0.x (tested with 1.7.36 and 2.0.16)
 - JUnit 5 (for assertion utilities)
 - Lombok (build-time dependency for code generation)
+
+## Technical Implementation
+
+### SLF4J Version Support
+
+This library uses different service provider mechanisms depending on the SLF4J version:
+
+**SLF4J 1.7.x:**
+- Uses Static Binder pattern (`StaticLoggerBinder`, `StaticMarkerBinder`, `StaticMDCBinder`)
+- Compatible with all SLF4J 1.7.x releases
+- Implements core MDC functionality
+
+**SLF4J 2.0.x:**
+- Uses Service Provider Interface (`MockServiceProvider` implementing `SLF4JServiceProvider`)
+- Registered via `META-INF/services/org.slf4j.spi.SLF4JServiceProvider`
+- Supports enhanced MDC features including Deque methods (`pushByKey`, `popByKey`, `getCopyOfDequeByKey`, `clearDequeByKey`)
+
+The correct implementation is automatically selected at runtime based on your SLF4J classpath. No configuration needed!
+
+For detailed information about the multi-version support strategy, see:
+- [ADR-0004: Multiple SLF4J Version Support](ADR-0004-multiple-slf4j-version-support.md)
+- [BUILD-PROFILES.md](BUILD-PROFILES.md) - For building from source
+
+## FAQ
+
+### How do I know which SLF4J version I'm using?
+
+Check your project's dependencies. If you see `slf4j-api` version 1.7.x, you're using SLF4J 1.7. If it's 2.0.x or higher, you're using SLF4J 2.0.
+
+```bash
+# Maven
+mvn dependency:tree | findstr slf4j-api
+
+# Gradle
+gradle dependencies | grep slf4j-api
+```
+
+### Do I need to do anything special for SLF4J 2.0?
+
+No! The library automatically detects and works with SLF4J 2.0. Just add it to your test dependencies as usual.
+
+### Can I use this library to migrate from SLF4J 1.7 to 2.0?
+
+Yes! Since this library supports both versions, your tests will continue to work during the migration. This makes it safe to upgrade your SLF4J version without changing your test code.
+
+### What are the differences between SLF4J 1.7 and 2.0 in this library?
+
+From a user perspective, there are minimal differences:
+- Both versions support all core logging and assertion features
+- SLF4J 2.0 includes additional MDC Deque methods (`pushByKey`, `popByKey`, etc.)
+- The service provider mechanism differs internally, but this is transparent to users
+
+### Does this work with SLF4J 1.8 or other versions?
+
+SLF4J jumped from 1.7.x directly to 2.0.x. There is no 1.8 version. This library is tested with:
+- Latest SLF4J 1.7.x (1.7.36)
+- Latest SLF4J 2.0.x (2.0.16)
+
+It should work with any 1.7.x or 2.0.x release.
 
 ## License
 
