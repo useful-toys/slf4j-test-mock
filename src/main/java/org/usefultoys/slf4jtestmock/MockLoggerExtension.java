@@ -60,7 +60,7 @@ public class MockLoggerExtension implements
      * @throws IllegalAccessException   If the field is inaccessible.
      */
     @Override
-    public void beforeEach(final ExtensionContext context) throws SecurityException, IllegalArgumentException, IllegalAccessException {
+    public void beforeEach(final ExtensionContext context) throws IllegalAccessException {
         final Object testInstance = context.getRequiredTestInstance();
         final Class<?> testClass = testInstance.getClass();
         final Field[] fields = testClass.getDeclaredFields();
@@ -235,13 +235,15 @@ public class MockLoggerExtension implements
      * @throws RuntimeException                If a security exception occurs during reflection.
      * @throws ExtensionConfigurationException If an error occurs during method invocation.
      */
-    private void setIfExists(final MockLogger mock, final String methodName, final boolean value) {
+    private static void setIfExists(final MockLogger mock, final String methodName, final boolean value) {
         try {
             final Method m = mock.getClass().getMethod(methodName, boolean.class);
             m.invoke(mock, Boolean.valueOf(value));
         } catch (final NoSuchMethodException e) {
             // Version of the library without this method – ignore
         } catch (final SecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         } catch (final Exception e) {
             throw new ExtensionConfigurationException("Error invoking " + methodName, e);
