@@ -1,6 +1,7 @@
 # This workflow builds, tests, and analyzes the project.
 # It runs on pushes and pull requests to the main branch,
 # and on pushes to feature branches (only for code changes).
+# Tests are executed against both SLF4J 1.7.x and 2.0.x to ensure compatibility.
 
 name: Maven Build, Test and Analyze
 
@@ -26,6 +27,12 @@ permissions:
 jobs:
   maven-build-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        slf4j-profile: [slf4j-1.7, slf4j-2.0]
+      fail-fast: false
+    name: Test with ${{ matrix.slf4j-profile }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -39,21 +46,26 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build with Maven
-        run: sh mvnw clean verify --batch-mode
+      - name: Build and Test with ${{ matrix.slf4j-profile }}
+        run: sh mvnw clean verify -P ${{ matrix.slf4j-profile }} --batch-mode
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage to Codecov (SLF4J 1.7 only)
+        if: matrix.slf4j-profile == 'slf4j-1.7'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
+          flags: slf4j-1.7
 
-      - name: Upload coverage to Coveralls
+      - name: Upload coverage to Coveralls (SLF4J 1.7 only)
+        if: matrix.slf4j-profile == 'slf4j-1.7'
         uses: coverallsapp/github-action@v2
         with:
           file: ./target/site/jacoco/jacoco.xml
+          flag-name: slf4j-1.7
 
-      - name: Upload coverage to Codacy
+      - name: Upload coverage to Codacy (SLF4J 1.7 only)
+        if: matrix.slf4j-profile == 'slf4j-1.7'
         uses: codacy/codacy-coverage-reporter-action@v1.3.0
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}

@@ -1,6 +1,8 @@
 # This workflow builds and deploys the project to Maven Central.
 # It is triggered on a push event for tags matching 'v*.*.*' (e.g., v1.2.3),
 # or can be triggered manually.
+# Before deployment, tests are executed against both SLF4J 1.7.x and 2.0.x
+# to ensure compatibility with both versions.
 name: Release and Deploy Version
 
 on:
@@ -13,7 +15,32 @@ permissions:
   contents: write # to fetch code (actions/checkout) and push tags
 
 jobs:
+  # Test with both SLF4J versions before deploying
+  test-compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        slf4j-profile: [slf4j-1.7, slf4j-2.0]
+      fail-fast: true # Stop if any version fails
+    name: Test with ${{ matrix.slf4j-profile }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v5
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Test with ${{ matrix.slf4j-profile }}
+        run: sh mvnw clean verify -P ${{ matrix.slf4j-profile }} --batch-mode
+
+  # Deploy only after all tests pass
   build-release-deploy:
+    needs: test-compatibility
     runs-on: ubuntu-latest
 
     steps:
@@ -31,8 +58,8 @@ jobs:
           server-username: MAVEN_CENTRAL_USERNAME
           server-password: MAVEN_CENTRAL_PASSWORD
 
-      - name: Build and Deploy
-        run: sh mvnw -ntp clean deploy -P release -DskipTests --batch-mode
+      - name: Build and Deploy (with SLF4J 1.7 profile)
+        run: sh mvnw -ntp clean deploy -P release,slf4j-1.7 --batch-mode
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
