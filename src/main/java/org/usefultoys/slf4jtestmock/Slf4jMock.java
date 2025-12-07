@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation to inject a {@link org.slf44j.impl.MockLogger} into a field or parameter.
+ * Annotation to inject a {@link org.slf4j.impl.MockLogger} into a field or parameter.
  * <p>
  * When applied to a field, the field must be of type {@link org.slf4j.Logger}.
  * The {@link org.slf4j.impl.MockLogger} instance will be automatically created and

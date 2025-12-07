@@ -42,7 +42,7 @@ public class MockMDCAdapter implements MDCAdapter {
     /**
      * Thread-local storage for MDC data. Each thread gets its own map instance.
      */
-    ThreadLocal<Map<String, String>> value = ThreadLocal.withInitial(HashMap::new);
+    private final ThreadLocal<Map<String, String>> value = ThreadLocal.withInitial(HashMap::new);
 
     @Override
 	public void put(final String key, final String val) {
