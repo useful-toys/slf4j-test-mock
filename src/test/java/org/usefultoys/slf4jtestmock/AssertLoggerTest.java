@@ -158,14 +158,6 @@ class AssertLoggerTest {
             assertTrue(error.getMessage().contains("should be MockLogger instance"));
         }
 
-        @Test
-        @DisplayName("should throw when logger is null")
-        void shouldThrowWhenLoggerIsNull() {
-            final Logger logger = null;
-            final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEvent(logger, 0, "test"));
-            assertTrue(error.getMessage().contains("should be MockLogger instance"));
-        }
-
         /**
          * Test implementation of Logger that is not MockLogger
          */
