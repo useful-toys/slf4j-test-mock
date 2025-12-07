@@ -1,4 +1,4 @@
-# Instructions for AI Assistants (Gemini & GitHub Copilot)
+o# Instructions for AI Assistants (Gemini & GitHub Copilot)
 
 ## Persona
 
@@ -58,4 +58,10 @@ The main command to run tests is `mvnw.cmd test` (Windows) or `./mvnw test` (Uni
 ### Publishing
 - The primary goal is to publish artifacts to Maven Central.
 - New versions should also be in GitHub Releases.
+
+### Documentation
+- **README.md Updates**: If you modify the behavior of the library's public API (e.g., `AssertLogger` API or any code indirectly called by `AssertLogger`), you **must** update the `README.md` file to reflect these changes.
+  - This includes: new methods, changed method signatures, new parameters, modified behavior, new features, or deprecations.
+  - Keep the README.md synchronized with the actual library capabilities.
+  - Provide clear examples demonstrating the new or modified functionality.
 
