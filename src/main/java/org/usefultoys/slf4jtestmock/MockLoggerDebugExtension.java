@@ -19,11 +19,13 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 import org.slf4j.impl.MockLogger;
+import org.slf4j.impl.MockLoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * JUnit 5 Extension that automatically prints logged events when a test fails.
@@ -48,7 +50,8 @@ import java.util.List;
  * @author Daniel Felix Ferber
  * @see LoggerEventFormatter
  */
-public class AssertLoggerDebugExtension implements InvocationInterceptor {
+@AIGenerated("copilot")
+public class MockLoggerDebugExtension implements InvocationInterceptor {
 
     /**
      * Intercepts test method execution to catch assertion errors and print logged events.
@@ -69,6 +72,11 @@ public class AssertLoggerDebugExtension implements InvocationInterceptor {
         } catch (final AssertionError e) {
             // Find and print all MockLogger instances in test parameters
             final List<MockLogger> mockLoggers = findMockLoggers(invocationContext);
+
+            // If none found in parameters, fall back to collecting all loggers from the factory
+            if (mockLoggers.isEmpty()) {
+                mockLoggers.addAll(findMockLoggersFromFactory());
+            }
 
             if (!mockLoggers.isEmpty()) {
                 printLoggedEvents(mockLoggers, extensionContext);
@@ -98,6 +106,21 @@ public class AssertLoggerDebugExtension implements InvocationInterceptor {
         }
 
         return mockLoggers;
+    }
+
+    /**
+     * Retrieves MockLogger instances from the MockLoggerFactory.
+     * This is used as a fallback when no MockLogger instances are present in method parameters.
+     */
+    private static List<MockLogger> findMockLoggersFromFactory() {
+        final List<MockLogger> result = new ArrayList<>(8);
+        final Map<String, org.slf4j.Logger> loggers = MockLoggerFactory.getLoggers();
+        for (final org.slf4j.Logger logger : loggers.values()) {
+            if (logger instanceof MockLogger) {
+                result.add((MockLogger) logger);
+            }
+        }
+        return result;
     }
 
     /**
@@ -132,4 +155,3 @@ public class AssertLoggerDebugExtension implements InvocationInterceptor {
         System.err.println();
     }
 }
-
