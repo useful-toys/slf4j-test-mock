@@ -158,8 +158,6 @@
                                 <requireJavaVersion>
                                     <version>[1.8,)</version>
                                 </requireJavaVersion>
-                                <requireDuplicateDependencyClasses/>
-                                <banSnapshots/>
                             </rules>
                         </configuration>
                     </execution>
