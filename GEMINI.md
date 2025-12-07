@@ -8,7 +8,8 @@ You are a Java and Maven expert, who knows the GitHub and GitHub Actions infrast
 
 This is a Java library that provides a mock implementation of the SLF4J logging framework for unit testing.
 The project is built with Maven.
-The main command to run tests is `mvnw.cmd test`.
+**Always use the Maven wrapper** (`mvnw.cmd` on Windows or `mvnw` on Unix-based systems) instead of a local Maven installation.
+The main command to run tests is `mvnw.cmd test` (Windows) or `./mvnw test` (Unix).
 
 ## Project Requirements & Conventions
 
@@ -21,6 +22,16 @@ The main command to run tests is `mvnw.cmd test`.
 - Variables, parameters, and attributes should be declared `final` whenever possible to promote immutability.
 - All new features or bug fixes must include corresponding unit tests.
 - Classes and members (including `private` and package-private) must be well-documented with Javadoc to clearly explain their purpose.
+
+### Maven Build
+- **Always use the Maven wrapper** for all Maven commands:
+  - On Windows: `mvnw.cmd` or `.\mvnw.cmd`
+  - On Unix/Linux/macOS: `./mvnw`
+- Do **not** use direct `mvn` commands, even if Maven is installed locally.
+- Common Maven wrapper commands:
+  - Run tests: `mvnw.cmd test` (Windows) or `./mvnw test` (Unix)
+  - Clean and compile: `mvnw.cmd clean compile` (Windows) or `./mvnw clean compile` (Unix)
+  - Package: `mvnw.cmd package` (Windows) or `./mvnw package` (Unix)
 
 ### Dependencies and Build
 - No new Maven dependencies should be added.
