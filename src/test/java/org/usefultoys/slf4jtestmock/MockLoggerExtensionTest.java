@@ -580,5 +580,347 @@ class MockLoggerExtensionTest {
             assertEquals(0, mockLoggerField.getEventCount());
         }
     }
+
+    /**
+     * Tests for fields without @Slf4jMock annotation (should be ignored).
+     */
+    @Nested
+    @DisplayName("Fields Without Annotation")
+    @ExtendWith(MockLoggerExtension.class)
+    class FieldsWithoutAnnotationTest {
+
+        @Slf4jMock
+        private Logger annotatedLogger;
+
+        // This field should NOT be injected because it lacks @Slf4jMock annotation
+        private Logger unannotatedLogger;
+
+        // This field should be ignored (not a Logger type)
+        @Slf4jMock
+        private String notALogger;
+
+        @Test
+        @DisplayName("Should inject annotated logger field")
+        void shouldInjectAnnotatedLoggerField() {
+            assertNotNull(annotatedLogger, "should inject field with @Slf4jMock annotation");
+            assertInstanceOf(MockLogger.class, annotatedLogger);
+        }
+
+        @Test
+        @DisplayName("Should inject unannotated logger field with default configuration")
+        void shouldInjectUnannotatedLoggerFieldWithDefaultConfiguration() {
+            // The extension injects ALL Logger/MockLogger fields, regardless of annotation
+            // The @Slf4jMock annotation is only used for configuration
+            assertNotNull(unannotatedLogger, "should inject Logger field even without annotation");
+            assertInstanceOf(MockLogger.class, unannotatedLogger);
+
+            // Verify it has default configuration (all levels enabled)
+            assertTrue(unannotatedLogger.isInfoEnabled(), "should have default config with info enabled");
+        }
+
+        @Test
+        @DisplayName("Should ignore non-logger fields even with annotation")
+        void shouldIgnoreNonLoggerFieldsEvenWithAnnotation() {
+            assertNull(notALogger, "should ignore non-Logger fields even if annotated");
+        }
+    }
+
+    /**
+     * Tests for disabled logger with specific levels configured (levels should be ignored).
+     */
+    @Nested
+    @DisplayName("Disabled Logger with Level Configuration")
+    @ExtendWith(MockLoggerExtension.class)
+    class DisabledLoggerWithLevelsTest {
+
+        @Slf4jMock(enabled = false, infoEnabled = true, errorEnabled = true)
+        private Logger disabledWithLevels;
+
+        @Test
+        @DisplayName("Should ignore level configuration when logger is disabled")
+        void shouldIgnoreLevelConfigurationWhenLoggerIsDisabled() {
+            // When enabled = false, level configurations should be ignored
+            // The logger should not record any events
+            disabledWithLevels.info("Info message");
+            disabledWithLevels.error("Error message");
+
+            final MockLogger mockLogger = (MockLogger) disabledWithLevels;
+            assertEquals(0, mockLogger.getEventCount(), "should not record events when disabled");
+        }
+    }
+
+    /**
+     * Tests for empty string values in @Slf4jMock annotation.
+     */
+    @Nested
+    @DisplayName("Empty String Configuration")
+    @ExtendWith(MockLoggerExtension.class)
+    class EmptyStringConfigurationTest {
+
+        @Slf4jMock(value = "")
+        private Logger emptyValueLogger;
+
+        @Test
+        @DisplayName("Should use test class name when value is empty string")
+        void shouldUseTestClassNameWhenValueIsEmptyString() {
+            final MockLogger mockLogger = (MockLogger) emptyValueLogger;
+            assertEquals(EmptyStringConfigurationTest.class.getName(), mockLogger.getName(),
+                "should fall back to test class name when value is empty");
+        }
+    }
+
+    /**
+     * Tests for Void.class type configuration (should fall back to test class name).
+     */
+    @Nested
+    @DisplayName("Void Type Configuration")
+    @ExtendWith(MockLoggerExtension.class)
+    class VoidTypeConfigurationTest {
+
+        @Slf4jMock(type = Void.class)
+        private Logger voidTypeLogger;
+
+        @Test
+        @DisplayName("Should use test class name when type is Void.class")
+        void shouldUseTestClassNameWhenTypeIsVoidClass() {
+            final MockLogger mockLogger = (MockLogger) voidTypeLogger;
+            assertEquals(VoidTypeConfigurationTest.class.getName(), mockLogger.getName(),
+                "should fall back to test class name when type is Void.class");
+        }
+    }
+
+    /**
+     * Tests for parameter resolver support checking.
+     */
+    @Nested
+    @DisplayName("Parameter Resolver Support")
+    @ExtendWith(MockLoggerExtension.class)
+    class ParameterResolverSupportTest {
+
+        @Test
+        @DisplayName("Should support Logger parameter type")
+        void shouldSupportLoggerParameterType(@Slf4jMock final Logger logger) {
+            assertNotNull(logger, "should resolve Logger parameter");
+        }
+
+        @Test
+        @DisplayName("Should support MockLogger parameter type")
+        void shouldSupportMockLoggerParameterType(@Slf4jMock final MockLogger mockLogger) {
+            assertNotNull(mockLogger, "should resolve MockLogger parameter");
+        }
+
+        @Test
+        @DisplayName("Should support parameter without annotation using default config")
+        void shouldSupportParameterWithoutAnnotation(final Logger logger) {
+            // Without @Slf4jMock, the extension should still create a logger with defaults
+            assertNotNull(logger, "should resolve Logger parameter even without annotation");
+            assertInstanceOf(MockLogger.class, logger);
+
+            final MockLogger mockLogger = (MockLogger) logger;
+            assertTrue(mockLogger.isInfoEnabled(), "should have default config with all levels enabled");
+        }
+    }
+
+    /**
+     * Tests for multiple parameters with different configurations.
+     */
+    @Nested
+    @DisplayName("Multiple Parameters with Different Configs")
+    @ExtendWith(MockLoggerExtension.class)
+    class MultipleParametersDifferentConfigsTest {
+
+        @Test
+        @DisplayName("Should inject parameters with different level configurations")
+        void shouldInjectParametersWithDifferentLevelConfigurations(
+                @Slf4jMock(value = "logger.config1", traceEnabled = false, debugEnabled = false) final Logger logger1,
+                @Slf4jMock(value = "logger.config2", warnEnabled = false, errorEnabled = false) final Logger logger2) {
+
+            assertFalse(logger1.isTraceEnabled(), "logger1 should have trace disabled");
+            assertFalse(logger1.isDebugEnabled(), "logger1 should have debug disabled");
+            assertTrue(logger1.isInfoEnabled(), "logger1 should have info enabled");
+
+            assertTrue(logger2.isTraceEnabled(), "logger2 should have trace enabled");
+            assertFalse(logger2.isWarnEnabled(), "logger2 should have warn disabled");
+            assertFalse(logger2.isErrorEnabled(), "logger2 should have error disabled");
+        }
+
+        @Test
+        @DisplayName("Should inject parameters with different enabled states")
+        void shouldInjectParametersWithDifferentEnabledStates(
+                @Slf4jMock(value = "logger.enabled", enabled = true) final Logger enabledLogger,
+                @Slf4jMock(value = "logger.disabled", enabled = false) final Logger disabledLogger) {
+
+            enabledLogger.info("Should be recorded");
+            disabledLogger.info("Should not be recorded");
+
+            final MockLogger enabled = (MockLogger) enabledLogger;
+            final MockLogger disabled = (MockLogger) disabledLogger;
+
+            assertEquals(1, enabled.getEventCount(), "enabled logger should record events");
+            assertEquals(0, disabled.getEventCount(), "disabled logger should not record events");
+        }
+    }
+
+    /**
+     * Tests for combination of empty value and Void type (should fall back to test class name).
+     */
+    @Nested
+    @DisplayName("Empty Value and Void Type Combination")
+    @ExtendWith(MockLoggerExtension.class)
+    class EmptyValueVoidTypeCombinationTest {
+
+        @Slf4jMock(value = "", type = Void.class)
+        private Logger fallbackLogger;
+
+        @Test
+        @DisplayName("Should fall back to test class name when both value is empty and type is Void")
+        void shouldFallBackToTestClassNameWhenBothEmpty() {
+            final MockLogger mockLogger = (MockLogger) fallbackLogger;
+            assertEquals(EmptyValueVoidTypeCombinationTest.class.getName(), mockLogger.getName(),
+                "should use test class name as fallback");
+        }
+    }
+
+    /**
+     * Tests for selective level configuration with only some levels specified.
+     */
+    @Nested
+    @DisplayName("Partial Level Configuration")
+    @ExtendWith(MockLoggerExtension.class)
+    class PartialLevelConfigurationTest {
+
+        @Slf4jMock(infoEnabled = false)
+        private Logger partiallyConfiguredLogger;
+
+        @Test
+        @DisplayName("Should disable only specified level and enable others by default")
+        void shouldDisableOnlySpecifiedLevelAndEnableOthersByDefault() {
+            assertTrue(partiallyConfiguredLogger.isTraceEnabled(), "trace should be enabled by default");
+            assertTrue(partiallyConfiguredLogger.isDebugEnabled(), "debug should be enabled by default");
+            assertFalse(partiallyConfiguredLogger.isInfoEnabled(), "info should be disabled as specified");
+            assertTrue(partiallyConfiguredLogger.isWarnEnabled(), "warn should be enabled by default");
+            assertTrue(partiallyConfiguredLogger.isErrorEnabled(), "error should be enabled by default");
+        }
+    }
+
+    /**
+     * Tests for logger name resolution with various class types.
+     */
+    @Nested
+    @DisplayName("Logger Name with Various Types")
+    @ExtendWith(MockLoggerExtension.class)
+    class LoggerNameVariousTypesTest {
+
+        @Slf4jMock(type = java.util.ArrayList.class)
+        private Logger arrayListLogger;
+
+        @Slf4jMock(type = org.slf4j.Logger.class)
+        private Logger loggerTypeLogger;
+
+        @Test
+        @DisplayName("Should use ArrayList fully qualified name as logger name")
+        void shouldUseArrayListFullyQualifiedNameAsLoggerName() {
+            final MockLogger mockLogger = (MockLogger) arrayListLogger;
+            assertEquals(java.util.ArrayList.class.getName(), mockLogger.getName(),
+                "should use ArrayList class name");
+        }
+
+        @Test
+        @DisplayName("Should use Logger interface fully qualified name as logger name")
+        void shouldUseLoggerInterfaceFullyQualifiedNameAsLoggerName() {
+            final MockLogger mockLogger = (MockLogger) loggerTypeLogger;
+            assertEquals(org.slf4j.Logger.class.getName(), mockLogger.getName(),
+                "should use Logger interface name");
+        }
+    }
+
+    /**
+     * Tests for reinitializing logger between test methods maintains independence.
+     */
+    @Nested
+    @DisplayName("Logger Independence Between Tests")
+    @ExtendWith(MockLoggerExtension.class)
+    class LoggerIndependenceBetweenTestsTest {
+
+        @Slf4jMock(value = "independence.test")
+        private Logger logger;
+
+        @Test
+        @DisplayName("First test modifies logger state")
+        void firstTestModifiesLoggerState() {
+            logger.info("First message");
+            logger.warn("Second message");
+            logger.error("Third message");
+
+            final MockLogger mockLogger = (MockLogger) logger;
+            assertEquals(3, mockLogger.getEventCount(), "should have 3 events");
+        }
+
+        @Test
+        @DisplayName("Second test starts with clean logger state")
+        void secondTestStartsWithCleanLoggerState() {
+            final MockLogger mockLogger = (MockLogger) logger;
+            assertEquals(0, mockLogger.getEventCount(),
+                "should start with 0 events (cleared from previous test)");
+        }
+    }
+
+    /**
+     * Tests for parameter with empty value annotation.
+     */
+    @Nested
+    @DisplayName("Parameter with Empty Value")
+    @ExtendWith(MockLoggerExtension.class)
+    class ParameterEmptyValueTest {
+
+        @Test
+        @DisplayName("Should use test class name for parameter with empty value")
+        void shouldUseTestClassNameForParameterWithEmptyValue(@Slf4jMock(value = "") final Logger logger) {
+            final MockLogger mockLogger = (MockLogger) logger;
+            assertEquals(ParameterEmptyValueTest.class.getName(), mockLogger.getName(),
+                "should fall back to test class name");
+        }
+    }
+
+    /**
+     * Tests for verifying events are actually cleared before each test.
+     */
+    @Nested
+    @DisplayName("Event Clearing Verification")
+    @ExtendWith(MockLoggerExtension.class)
+    class EventClearingVerificationTest {
+
+        @Slf4jMock
+        private Logger logger;
+
+        @Test
+        @DisplayName("Test 1 - Add events")
+        void test1AddEvents() {
+            logger.info("Test 1 message");
+            logger.error("Test 1 error");
+
+            final MockLogger mockLogger = (MockLogger) logger;
+            assertEquals(2, mockLogger.getEventCount(), "should have 2 events in test 1");
+        }
+
+        @Test
+        @DisplayName("Test 2 - Verify clean state")
+        void test2VerifyCleanState() {
+            final MockLogger mockLogger = (MockLogger) logger;
+            assertEquals(0, mockLogger.getEventCount(),
+                "should have 0 events at start of test 2");
+
+            logger.debug("Test 2 message");
+            assertEquals(1, mockLogger.getEventCount(), "should have 1 event after logging");
+        }
+
+        @Test
+        @DisplayName("Test 3 - Verify clean state again")
+        void test3VerifyCleanStateAgain() {
+            final MockLogger mockLogger = (MockLogger) logger;
+            assertEquals(0, mockLogger.getEventCount(),
+                "should have 0 events at start of test 3");
+        }
+    }
 }
 
