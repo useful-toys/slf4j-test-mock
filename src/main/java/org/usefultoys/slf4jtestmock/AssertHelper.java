@@ -58,6 +58,13 @@ class AssertHelper {
                         event.getEventIndex(), String.join(", ", messageParts), event.getFormattedMessage()));
     }
 
+    /**
+     * Asserts that a log event's formatted message does NOT contain all the specified message parts.
+     *
+     * @param event        the log event to check.
+     * @param messageParts the substrings expected NOT to be in the log message.
+     * @throws AssertionError if the message contains all parts.
+     */
     void assertMessagePartsNot(final MockLoggerEvent event, final String[] messageParts) {
         final boolean hasAllParts = hasAllMessageParts(event, messageParts);
         Assertions.assertFalse(hasAllParts,
@@ -77,6 +84,13 @@ class AssertHelper {
                 String.format("should have expected marker at eventIndex %d; expected: %s, actual: %s", event.getEventIndex(), expectedMarker, event.getMarker()));
     }
 
+    /**
+     * Asserts that a log event does NOT have the unexpected {@link Marker}.
+     *
+     * @param event          the log event to check.
+     * @param unexpectedMarker the marker expected NOT to be present.
+     * @throws AssertionError if the event's marker matches the unexpected one.
+     */
     void assertMarkerNot(final MockLoggerEvent event, final Marker unexpectedMarker) {
         Assertions.assertNotSame(unexpectedMarker, event.getMarker(),
                 String.format("should not have unexpected marker at eventIndex %d; unexpected: %s", event.getEventIndex(), unexpectedMarker));
@@ -94,6 +108,13 @@ class AssertHelper {
                 String.format("should have expected log level at eventIndex %d; expected: %s, actual: %s", event.getEventIndex(), expectedLevel, event.getLevel()));
     }
 
+    /**
+     * Asserts that a log event does NOT have the unexpected {@link MockLoggerEvent.Level}.
+     *
+     * @param event          the log event to check.
+     * @param unexpectedLevel the log level expected NOT to be present.
+     * @throws AssertionError if the event's level matches the unexpected one.
+     */
     void assertLevelNot(final MockLoggerEvent event, final MockLoggerEvent.Level unexpectedLevel) {
         Assertions.assertNotSame(unexpectedLevel, event.getLevel(),
                 String.format("should not have unexpected log level at eventIndex %d; unexpected: %s", event.getEventIndex(), unexpectedLevel));
@@ -114,6 +135,15 @@ class AssertHelper {
                         event.getEventIndex(), expectedThrowableClass.getName(), throwable.getClass().getName()));
     }
 
+    /**
+     * Asserts that a {@link Throwable} is NOT an instance of the unexpected class.
+     * If the throwable is null, this assertion passes.
+     *
+     * @param event                    the log event to check.
+     * @param throwable                the throwable to check.
+     * @param unexpectedThrowableClass the class of the throwable expected NOT to be.
+     * @throws AssertionError if the throwable is not null and is an instance of the unexpected type.
+     */
     void assertThrowableNotOfInstance(final MockLoggerEvent event, final Throwable throwable, final Class<? extends Throwable> unexpectedThrowableClass) {
         if (throwable != null) {
             Assertions.assertFalse(unexpectedThrowableClass.isInstance(throwable),
@@ -136,6 +166,15 @@ class AssertHelper {
                 String.format("should contain all expected message parts in throwable at eventIndex %d; expected parts: %s; actual message: %s", event.getEventIndex(), String.join(", ", throwableMessageParts), throwable));
     }
 
+    /**
+     * Asserts that a {@link Throwable}'s message does NOT contain all the specified message parts.
+     * If the throwable is null, this assertion passes.
+     *
+     * @param event                 the log event to check.
+     * @param throwable             the throwable to check.
+     * @param throwableMessageParts the substrings expected NOT to be in the throwable's message.
+     * @throws AssertionError if the throwable's message contains all parts.
+     */
     void assertThrowableHasMessagePartsNot(final MockLoggerEvent event, final Throwable throwable, final String[] throwableMessageParts) {
         if (throwable != null) {
             final boolean hasAllParts = hasAllMessageParts(throwable, throwableMessageParts);
