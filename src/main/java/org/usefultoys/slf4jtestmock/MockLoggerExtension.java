@@ -1,11 +1,6 @@
 package org.usefultoys.slf4jtestmock;
 
-import org.junit.jupiter.api.extension.BeforeEachCallback;
-import org.junit.jupiter.api.extension.ExtensionConfigurationException;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolver;
-import org.junit.jupiter.api.extension.TestInstancePostProcessor;
+import org.junit.jupiter.api.extension.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.MockLogger;
@@ -22,12 +17,12 @@ public class MockLoggerExtension implements
 
     // --- Inicializa campos na instância de teste ---
     @Override
-    public void postProcessTestInstance(Object testInstance, ExtensionContext context) throws Exception {
-        Class<?> testClass = testInstance.getClass();
-        Field[] fields = testClass.getDeclaredFields();
-        for (Field field : fields) {
+    public void postProcessTestInstance(final Object testInstance, final ExtensionContext context) {
+        final Class<?> testClass = testInstance.getClass();
+        final Field[] fields = testClass.getDeclaredFields();
+        for (final Field field : fields) {
             if (isLoggerField(field)) {
-                Logger logger = createAndConfigureLogger(field, testClass, field.getName());
+                final Logger logger = createAndConfigureLogger(field, testClass, field.getName());
                 setField(field, testInstance, logger);
             }
         }
@@ -35,16 +30,16 @@ public class MockLoggerExtension implements
 
     // --- Antes de cada teste, limpa e reconfigura os loggers já injetados ---
     @Override
-    public void beforeEach(ExtensionContext context) throws Exception {
-        Object testInstance = context.getRequiredTestInstance();
-        Class<?> testClass = testInstance.getClass();
-        Field[] fields = testClass.getDeclaredFields();
-        for (Field field : fields) {
+    public void beforeEach(final ExtensionContext context) throws SecurityException, IllegalArgumentException, IllegalAccessException {
+        final Object testInstance = context.getRequiredTestInstance();
+        final Class<?> testClass = testInstance.getClass();
+        final Field[] fields = testClass.getDeclaredFields();
+        for (final Field field : fields) {
             if (isLoggerField(field)) {
                 field.setAccessible(true);
-                Object value = field.get(testInstance);
+                final Object value = field.get(testInstance);
                 if (value instanceof Logger) {
-                    Logger slf4jLogger = (Logger) value;
+                    final Logger slf4jLogger = (Logger) value;
                     reinitializeLogger(field, testClass, slf4jLogger);
                 }
             }
@@ -53,16 +48,16 @@ public class MockLoggerExtension implements
 
     // --- Suporte a injeção via parâmetro de método ---
     @Override
-    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        Class<?> type = parameterContext.getParameter().getType();
+    public boolean supportsParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) {
+        final Class<?> type = parameterContext.getParameter().getType();
         return Logger.class.equals(type) || MockLogger.class.equals(type);
     }
 
     @Override
-    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        Parameter parameter = parameterContext.getParameter();
-        Class<?> testClass = extensionContext.getRequiredTestClass();
-        Logger logger = createAndConfigureLogger(parameter, testClass, parameter.getName());
+    public Object resolveParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) {
+        final Parameter parameter = parameterContext.getParameter();
+        final Class<?> testClass = extensionContext.getRequiredTestClass();
+        final Logger logger = createAndConfigureLogger(parameter, testClass, parameter.getName());
 
         if (MockLogger.class.equals(parameter.getType())) {
             return (MockLogger) logger;
@@ -72,17 +67,17 @@ public class MockLoggerExtension implements
 
     // --- Helpers principais ---
 
-    private boolean isLoggerField(Field field) {
-        Class<?> type = field.getType();
+    private boolean isLoggerField(final Field field) {
+        final Class<?> type = field.getType();
         return Logger.class.equals(type) || MockLogger.class.equals(type);
     }
 
-    private Logger createAndConfigureLogger(AnnotatedElement element,
-                                            Class<?> testClass,
-                                            String fallbackName) {
+    private Logger createAndConfigureLogger(final AnnotatedElement element,
+                                            final Class<?> testClass,
+                                            final String fallbackName) {
 
-        String loggerName = resolveLoggerName(element, testClass, fallbackName);
-        Logger slf4jLogger = LoggerFactory.getLogger(loggerName);
+        final String loggerName = resolveLoggerName(element, testClass, fallbackName);
+        final Logger slf4jLogger = LoggerFactory.getLogger(loggerName);
 
         if (!(slf4jLogger instanceof MockLogger)) {
             throw new ExtensionConfigurationException(
@@ -91,15 +86,15 @@ public class MockLoggerExtension implements
             );
         }
 
-        MockLogger mock = (MockLogger) slf4jLogger;
+        final MockLogger mock = (MockLogger) slf4jLogger;
         applyConfig(mock, element);
 
         return slf4jLogger;
     }
 
-    private void reinitializeLogger(AnnotatedElement element,
-                                    Class<?> testClass,
-                                    Logger slf4jLogger) {
+    private void reinitializeLogger(final AnnotatedElement element,
+                                    final Class<?> testClass,
+                                    final Logger slf4jLogger) {
 
         if (!(slf4jLogger instanceof MockLogger)) {
             throw new ExtensionConfigurationException(
@@ -107,12 +102,12 @@ public class MockLoggerExtension implements
             );
         }
 
-        MockLogger mock = (MockLogger) slf4jLogger;
+        final MockLogger mock = (MockLogger) slf4jLogger;
         applyConfig(mock, element);
     }
 
-    private void applyConfig(MockLogger mock, AnnotatedElement element) {
-        Slf4jMock cfg = element.getAnnotation(Slf4jMock.class);
+    private void applyConfig(final MockLogger mock, final AnnotatedElement element) {
+        final Slf4jMock cfg = element.getAnnotation(Slf4jMock.class);
 
         // Sempre limpa eventos antes de cada teste
         mock.clearEvents();
@@ -134,7 +129,7 @@ public class MockLoggerExtension implements
         }
     }
 
-    private void enableAllLevels(MockLogger mock) {
+    private void enableAllLevels(final MockLogger mock) {
         setIfExists(mock, "setTraceEnabled", true);
         setIfExists(mock, "setDebugEnabled", true);
         setIfExists(mock, "setInfoEnabled",  true);
@@ -143,22 +138,24 @@ public class MockLoggerExtension implements
     }
 
     // Usa reflexão para não quebrar se alguma versão não tiver certos setters
-    private void setIfExists(MockLogger mock, String methodName, boolean value) {
+    private void setIfExists(final MockLogger mock, final String methodName, final boolean value) {
         try {
-            Method m = mock.getClass().getMethod(methodName, boolean.class);
+            final Method m = mock.getClass().getMethod(methodName, boolean.class);
             m.invoke(mock, Boolean.valueOf(value));
-        } catch (NoSuchMethodException e) {
+        } catch (final NoSuchMethodException e) {
             // Versão da lib sem esse método – ignora
-        } catch (Exception e) {
+        } catch (SecurityException e) {
+            throw new RuntimeException(e);
+        } catch (final Exception e) {
             throw new ExtensionConfigurationException("Error invoking " + methodName, e);
         }
     }
 
-    private String resolveLoggerName(AnnotatedElement element,
-                                     Class<?> testClass,
-                                     String fallbackName) {
+    private String resolveLoggerName(final AnnotatedElement element,
+                                     final Class<?> testClass,
+                                     final String fallbackName) {
 
-        Slf4jMock cfg = element.getAnnotation(Slf4jMock.class);
+        final Slf4jMock cfg = element.getAnnotation(Slf4jMock.class);
         if (cfg != null) {
             if (!cfg.value().isEmpty()) {
                 return cfg.value();
@@ -171,7 +168,7 @@ public class MockLoggerExtension implements
         return testClass.getName();
     }
 
-    private void setField(Field field, Object instance, Logger logger) {
+    private void setField(final Field field, final Object instance, final Logger logger) {
         try {
             field.setAccessible(true);
             if (field.getType().equals(MockLogger.class) && logger instanceof MockLogger) {
@@ -179,7 +176,7 @@ public class MockLoggerExtension implements
             } else {
                 field.set(instance, logger);
             }
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             throw new ExtensionConfigurationException("Could not set logger field: " + field, e);
         }
     }

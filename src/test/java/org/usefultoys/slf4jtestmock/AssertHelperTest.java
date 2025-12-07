@@ -34,11 +34,14 @@ package org.usefultoys.slf4jtestmock;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.slf4j.impl.MockLogger;
 import org.slf4j.impl.MockLoggerEvent;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -55,6 +58,71 @@ class AssertHelperTest {
     private MockLoggerEvent createEvent(MockLoggerEvent.Level level, Marker marker, String message, Throwable throwable) {
         return new MockLoggerEvent(0, "test-logger", level, Collections.emptyMap(), marker, throwable, message);
     }
+
+    @Nested
+    @DisplayName("toMockLogger() tests")
+    class ToMockLoggerTest {
+        @Test
+        @DisplayName("should return MockLogger instance")
+        void shouldReturnMockLogger() {
+            final Logger logger = new MockLogger("test");
+            final MockLogger mockLogger = AssertHelper.toMockLogger(logger);
+            assertNotNull(mockLogger, "should return a MockLogger instance");
+        }
+
+        @Test
+        @DisplayName("should throw for non-MockLogger instance")
+        void shouldThrowForNonMockLogger() {
+            final Logger logger = new TestLogger();
+            final AssertionError error = assertThrows(AssertionError.class, () -> AssertHelper.toMockLogger(logger));
+            assertTrue(error.getMessage().contains("should be MockLogger instance"));
+        }
+
+        @Test
+        @DisplayName("should throw for non-MockLogger instance")
+        void shouldThrowForNullLogger() {
+            final Logger logger = null;
+            final AssertionError error = assertThrows(AssertionError.class, () -> AssertHelper.toMockLogger(logger));
+            assertTrue(error.getMessage().contains("should be MockLogger instance"));
+        }
+    }
+
+    @Nested
+    @DisplayName("loggerToEvents() tests")
+    class LoggerToEventsTest {
+        @Test
+        @DisplayName("should return list of events")
+        void shouldReturnListOfEvents() {
+            final MockLogger logger = new MockLogger("test");
+            logger.info("message 1");
+            logger.info("message 2");
+            final List<MockLoggerEvent> events = AssertHelper.loggerToEvents(logger);
+            assertEquals(2, events.size(), "should return the correct number of events");
+        }
+    }
+
+    @Nested
+    @DisplayName("loggerIndexToEvent() tests")
+    class LoggerIndexToEventTest {
+        @Test
+        @DisplayName("should return event at valid index")
+        void shouldReturnEventAtValidIndex() {
+            final MockLogger logger = new MockLogger("test");
+            logger.info("message 1");
+            final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, 0);
+            assertNotNull(event, "should return an event");
+            assertEquals("message 1", event.getFormattedMessage());
+        }
+
+        @Test
+        @DisplayName("should throw for out of bounds index")
+        void shouldThrowForOutOfBoundsIndex() {
+            final MockLogger logger = new MockLogger("test");
+            final AssertionError error = assertThrows(AssertionError.class, () -> AssertHelper.loggerIndexToEvent(logger, 0));
+            assertTrue(error.getMessage().contains("should have enough logger events"));
+        }
+    }
+
 
     @Nested
     @DisplayName("assertMessageParts() tests")
@@ -385,5 +453,72 @@ class AssertHelperTest {
             final Throwable throwable = event.getThrowable();
             assertThrows(AssertionError.class, () -> AssertHelper.assertThrowableHasMessagePartsNot(event, throwable, new String[]{"is an", "error"}), "should throw when all parts are present");
         }
+    }
+
+    /**
+     * Test implementation of Logger that is not MockLogger
+     */
+    private class TestLogger implements Logger {
+        @Override public String getName() { return "test"; }
+        @Override public boolean isTraceEnabled() { return false; }
+        @Override public void trace(String msg) {}
+        @Override public void trace(String format, Object arg) {}
+        @Override public void trace(String format, Object arg1, Object arg2) {}
+        @Override public void trace(String format, Object... arguments) {}
+        @Override public void trace(String msg, Throwable t) {}
+        @Override public boolean isTraceEnabled(Marker marker) { return false; }
+        @Override public void trace(Marker marker, String msg) {}
+        @Override public void trace(Marker marker, String format, Object arg) {}
+        @Override public void trace(Marker marker, String format, Object arg1, Object arg2) {}
+        @Override public void trace(Marker marker, String format, Object... argArray) {}
+        @Override public void trace(Marker marker, String msg, Throwable t) {}
+        @Override public boolean isDebugEnabled() { return false; }
+        @Override public void debug(String msg) {}
+        @Override public void debug(String format, Object arg) {}
+        @Override public void debug(String format, Object arg1, Object arg2) {}
+        @Override public void debug(String format, Object... arguments) {}
+        @Override public void debug(String msg, Throwable t) {}
+        @Override public boolean isDebugEnabled(Marker marker) { return false; }
+        @Override public void debug(Marker marker, String msg) {}
+        @Override public void debug(Marker marker, String format, Object arg) {}
+        @Override public void debug(Marker marker, String format, Object arg1, Object arg2) {}
+        @Override public void debug(Marker marker, String format, Object... argArray) {}
+        @Override public void debug(Marker marker, String msg, Throwable t) {}
+        @Override public boolean isInfoEnabled() { return false; }
+        @Override public void info(String msg) {}
+        @Override public void info(String format, Object arg) {}
+        @Override public void info(String format, Object arg1, Object arg2) {}
+        @Override public void info(String format, Object... arguments) {}
+        @Override public void info(String msg, Throwable t) {}
+        @Override public boolean isInfoEnabled(Marker marker) { return false; }
+        @Override public void info(Marker marker, String msg) {}
+        @Override public void info(Marker marker, String format, Object arg) {}
+        @Override public void info(Marker marker, String format, Object arg1, Object arg2) {}
+        @Override public void info(Marker marker, String format, Object... argArray) {}
+        @Override public void info(Marker marker, String msg, Throwable t) {}
+        @Override public boolean isWarnEnabled() { return false; }
+        @Override public void warn(String msg) {}
+        @Override public void warn(String format, Object arg) {}
+        @Override public void warn(String format, Object... arguments) {}
+        @Override public void warn(String format, Object arg1, Object arg2) {}
+        @Override public void warn(String msg, Throwable t) {}
+        @Override public boolean isWarnEnabled(Marker marker) { return false; }
+        @Override public void warn(Marker marker, String msg) {}
+        @Override public void warn(Marker marker, String format, Object arg) {}
+        @Override public void warn(Marker marker, String format, Object arg1, Object arg2) {}
+        @Override public void warn(Marker marker, String format, Object... argArray) {}
+        @Override public void warn(Marker marker, String msg, Throwable t) {}
+        @Override public boolean isErrorEnabled() { return false; }
+        @Override public void error(String msg) {}
+        @Override public void error(String format, Object arg) {}
+        @Override public void error(String format, Object arg1, Object arg2) {}
+        @Override public void error(String format, Object... arguments) {}
+        @Override public void error(String msg, Throwable t) {}
+        @Override public boolean isErrorEnabled(Marker marker) { return false; }
+        @Override public void error(Marker marker, String msg) {}
+        @Override public void error(Marker marker, String format, Object arg) {}
+        @Override public void error(Marker marker, String format, Object arg1, Object arg2) {}
+        @Override public void error(Marker marker, String format, Object... argArray) {}
+        @Override public void error(Marker marker, String msg, Throwable t) {}
     }
 }
