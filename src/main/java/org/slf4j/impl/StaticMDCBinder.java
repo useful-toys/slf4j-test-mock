@@ -15,8 +15,8 @@
  */
 package org.slf4j.impl;
 
-import lombok.experimental.FieldDefaults;
 import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.slf4j.spi.MDCAdapter;
 
 /**
@@ -64,6 +64,7 @@ public final class StaticMDCBinder {
      *
      * @return the fully qualified class name of the MDC adapter
      */
+    @SuppressWarnings("MethodMayBeStatic")
     public String getMDCAdapterClassStr() {
         return MockMDCAdapter.class.getName();
     }

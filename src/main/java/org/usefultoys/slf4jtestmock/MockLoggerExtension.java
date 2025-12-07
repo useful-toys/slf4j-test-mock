@@ -111,7 +111,7 @@ public class MockLoggerExtension implements
         final Logger logger = createAndConfigureLogger(parameter, testClass, parameter.getName());
 
         if (MockLogger.class.equals(parameter.getType())) {
-            return (MockLogger) logger;
+            return logger;
         }
         return logger;
     }
@@ -122,7 +122,7 @@ public class MockLoggerExtension implements
      * @param field The field to check.
      * @return {@code true} if the field is a logger type, {@code false} otherwise.
      */
-    private boolean isLoggerField(final Field field) {
+    private static boolean isLoggerField(final Field field) {
         final Class<?> type = field.getType();
         return Logger.class.equals(type) || MockLogger.class.equals(type);
     }
@@ -262,9 +262,9 @@ public class MockLoggerExtension implements
      * @param fallbackName The name to use if no explicit name is found in the annotation.
      * @return The resolved logger name.
      */
-    private String resolveLoggerName(final AnnotatedElement element,
-                                     final Class<?> testClass,
-                                     final String fallbackName) {
+    private static String resolveLoggerName(final AnnotatedElement element,
+                                            final Class<?> testClass,
+                                            final String fallbackName) {
 
         final Slf4jMock cfg = element.getAnnotation(Slf4jMock.class);
         if (cfg != null) {
@@ -287,7 +287,7 @@ public class MockLoggerExtension implements
      * @param logger   The {@link Logger} instance to set.
      * @throws ExtensionConfigurationException If the field cannot be set.
      */
-    private void setField(final Field field, final Object instance, final Logger logger) {
+    private static void setField(final Field field, final Object instance, final Logger logger) {
         try {
             field.setAccessible(true);
             if (field.getType().equals(MockLogger.class) && logger instanceof MockLogger) {

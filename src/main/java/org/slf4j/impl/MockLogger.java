@@ -519,7 +519,7 @@ public class MockLogger implements Logger {
      * @return the formatted log statement string
      */
     @SuppressWarnings("StringConcatenation")
-    private String formatLogStatement(final MockLoggerEvent event) {
+    private static String formatLogStatement(final MockLoggerEvent event) {
         if (event.getThrowable() == null) {
             return event.getLevel() + " " + event.getLoggerName() + ": " + event.getFormattedMessage();
         }
