@@ -64,7 +64,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Default to SLF4J 1.7.x (can be overridden by profiles) -->
-        <slf4j.version>1.7.36</slf4j.version>
+        <slf4j.version>2.0.16</slf4j.version>
         <lombok.version>1.18.42</lombok.version>
         <junit5.version>5.14.1</junit5.version> <!-- Updated to stable version -->
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
@@ -113,8 +113,10 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <release>8</release>
+                    <compilerArgs>
+                        <arg>-Xlint:-options</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
@@ -142,6 +144,7 @@
                 </executions>
             </plugin>
             <plugin>
+                <!-- Enforce Maven and Java version requirements. -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>3.3.0</version>
@@ -154,10 +157,10 @@
                         <configuration>
                             <rules>
                                 <requireMavenVersion>
-                                    <version>[3.9.8,)</version>
+                                    <version>[3.9.8,3.10)</version>
                                 </requireMavenVersion>
                                 <requireJavaVersion>
-                                    <version>[1.8,)</version>
+                                    <version>[21,22)</version>
                                 </requireJavaVersion>
                             </rules>
                         </configuration>
@@ -168,12 +171,8 @@
     </build>
 
     <profiles>
-        <!-- SLF4J Version Profiles -->
         <profile>
             <id>slf4j-1.7</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
                 <slf4j.version>1.7.36</slf4j.version>
             </properties>
@@ -184,8 +183,10 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>${maven-compiler-plugin.version}</version>
                         <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
+                            <release>8</release>
+                            <compilerArgs>
+                                <arg>-Xlint:-options</arg>
+                            </compilerArgs>
                             <excludes>
                                 <!-- Exclude SLF4J 2.0 specific files -->
                                 <exclude>**/MockServiceProvider.java</exclude>
@@ -195,11 +196,10 @@
                 </plugins>
             </build>
         </profile>
+
+        <!-- SLF4J Version Profiles -->
         <profile>
             <id>slf4j-2.0</id>
-            <properties>
-                <slf4j.version>2.0.16</slf4j.version>
-            </properties>
         </profile>
 
         <!-- Release Profile -->
