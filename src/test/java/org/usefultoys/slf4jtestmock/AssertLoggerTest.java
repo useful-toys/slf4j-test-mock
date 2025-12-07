@@ -620,6 +620,45 @@ class AssertLoggerTest {
     }
 
     @Nested
+    @DisplayName("assertEventWithThrowable with message parts")
+    class AssertEventWithThrowableWithMessageParts {
+
+        @Test
+        @DisplayName("should pass when throwable message contains expected parts")
+        void shouldPassWhenThrowableMessageContainsExpectedParts() {
+            final Logger logger = new MockLogger("test");
+            logger.error("Database error", new RuntimeException("Connection failed"));
+            AssertLogger.assertEventWithThrowable(logger, 0, "Connection", "failed");
+        }
+
+        @Test
+        @DisplayName("should throw when throwable message does not contain expected parts")
+        void shouldThrowWhenThrowableMessageDoesNotContainExpectedParts() {
+            final Logger logger = new MockLogger("test");
+            logger.error("Database error", new RuntimeException("Connection failed"));
+            final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEventWithThrowable(logger, 0, "Connection", "succeeded"));
+            assertTrue(error.getMessage().contains("should contain all expected message parts in throwable"));
+        }
+
+        @Test
+        @DisplayName("should throw when event has no throwable")
+        void shouldThrowWhenEventHasNoThrowable() {
+            final Logger logger = new MockLogger("test");
+            logger.error("Error message");
+            final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEventWithThrowable(logger, 0, "any"));
+            assertTrue(error.getMessage().contains("should have a throwable"));
+        }
+
+        @Test
+        @DisplayName("should throw when event index is out of bounds")
+        void shouldThrowWhenEventIndexIsOutOfBounds() {
+            final Logger logger = new MockLogger("test");
+            final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEventWithThrowable(logger, 0, "any"));
+            assertTrue(error.getMessage().contains("should have enough logger events"));
+        }
+    }
+
+    @Nested
     @DisplayName("assertEventWithThrowable with class and message parts")
     class AssertEventWithThrowableClassAndMessage {
 
@@ -771,6 +810,362 @@ class AssertLoggerTest {
             logger.error("Error", new RuntimeException((String) null));
             final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertHasEventWithThrowable(logger, RuntimeException.class, "Any message"));
             assertTrue(error.getMessage().contains("should have at least one event with expected throwable type and message parts"));
+        }
+    }
+
+    @Nested
+    @DisplayName("assertNoEvent")
+    class AssertNoEvent {
+        @Test
+        @DisplayName("should pass when no event contains message parts")
+        void shouldPassWhenNoEventContainsMessageParts() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1");
+            AssertLogger.assertNoEvent(logger, "message 2");
+        }
+
+        @Test
+        @DisplayName("should throw when event contains message parts")
+        void shouldThrowWhenEventContainsMessageParts() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertNoEvent(logger, "message 1"));
+        }
+
+        @Test
+        @DisplayName("should pass when no event has marker")
+        void shouldPassWhenNoEventHasMarker() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            logger.info(marker1, "message 1");
+            final Marker marker2 = MarkerFactory.getMarker("marker2");
+            AssertLogger.assertNoEvent(logger, marker2);
+        }
+
+        @Test
+        @DisplayName("should throw when event has marker")
+        void shouldThrowWhenEventHasMarker() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            logger.info(marker1, "message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertNoEvent(logger, marker1));
+        }
+
+        @Test
+        @DisplayName("should pass when no event has level and message")
+        void shouldPassWhenNoEventHasLevelAndMessage() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1");
+            AssertLogger.assertNoEvent(logger, Level.INFO, "message 2");
+            AssertLogger.assertNoEvent(logger, Level.ERROR, "message 1");
+        }
+
+        @Test
+        @DisplayName("should throw when event has level and message")
+        void shouldThrowWhenEventHasLevelAndMessage() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertNoEvent(logger, Level.INFO, "message 1"));
+        }
+
+        @Test
+        @DisplayName("should pass when no event has marker and message")
+        void shouldPassWhenNoEventHasMarkerAndMessage() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            final Marker marker2 = MarkerFactory.getMarker("marker2");
+            logger.info(marker1, "message 1");
+            AssertLogger.assertNoEvent(logger, marker1, "message 2");
+            AssertLogger.assertNoEvent(logger, marker2, "message 1");
+        }
+
+        @Test
+        @DisplayName("should throw when event has marker and message")
+        void shouldThrowWhenEventHasMarkerAndMessage() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            logger.info(marker1, "message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertNoEvent(logger, marker1, "message 1"));
+        }
+
+        @Test
+        @DisplayName("should pass when no event has level, marker and message")
+        void shouldPassWhenNoEventHasLevelMarkerAndMessage() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            final Marker marker2 = MarkerFactory.getMarker("marker2");
+            logger.info(marker1, "message 1");
+            AssertLogger.assertNoEvent(logger, Level.INFO, marker1, "message 2");
+            AssertLogger.assertNoEvent(logger, Level.INFO, marker2, "message 1");
+            AssertLogger.assertNoEvent(logger, Level.ERROR, marker1, "message 1");
+        }
+
+        @Test
+        @DisplayName("should throw when event has level, marker and message")
+        void shouldThrowWhenEventHasLevelMarkerAndMessage() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            logger.info(marker1, "message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertNoEvent(logger, Level.INFO, marker1, "message 1"));
+        }
+
+        @Test
+        @DisplayName("should pass when no event has level and marker")
+        void shouldPassWhenNoEventHasLevelAndMarker() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            final Marker marker2 = MarkerFactory.getMarker("marker2");
+            logger.info(marker1, "message 1");
+            AssertLogger.assertNoEvent(logger, Level.INFO, marker2);
+            AssertLogger.assertNoEvent(logger, Level.ERROR, marker1);
+        }
+
+        @Test
+        @DisplayName("should throw when event has level and marker")
+        void shouldThrowWhenEventHasLevelAndMarker() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            logger.info(marker1, "message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertNoEvent(logger, Level.INFO, marker1));
+        }
+    }
+
+    @Nested
+    @DisplayName("assertNoEventWithThrowable")
+    class AssertNoEventWithThrowable {
+        @Test
+        @DisplayName("should pass when no event has throwable")
+        void shouldPassWhenNoEventHasThrowable() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1");
+            AssertLogger.assertNoEventWithThrowable(logger);
+        }
+
+        @Test
+        @DisplayName("should throw when event has throwable")
+        void shouldThrowWhenEventHasThrowable() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new Exception());
+            assertThrows(AssertionError.class, () -> AssertLogger.assertNoEventWithThrowable(logger));
+        }
+
+        @Test
+        @DisplayName("should pass when no event has throwable of class")
+        void shouldPassWhenNoEventHasThrowableOfClass() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new IOException());
+            AssertLogger.assertNoEventWithThrowable(logger, RuntimeException.class);
+        }
+
+        @Test
+        @DisplayName("should throw when event has throwable of class")
+        void shouldThrowWhenEventHasThrowableOfClass() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new IOException());
+            assertThrows(AssertionError.class, () -> AssertLogger.assertNoEventWithThrowable(logger, IOException.class));
+        }
+
+        @Test
+        @DisplayName("should pass when no event has throwable with message parts")
+        void shouldPassWhenNoEventHasThrowableWithMessageParts() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new IOException("message 1"));
+            AssertLogger.assertNoEventWithThrowable(logger, "message 2");
+        }
+
+        @Test
+        @DisplayName("should throw when event has throwable with message parts")
+        void shouldThrowWhenEventHasThrowableWithMessageParts() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new IOException("message 1"));
+            assertThrows(AssertionError.class, () -> AssertLogger.assertNoEventWithThrowable(logger, "message 1"));
+        }
+
+        @Test
+        @DisplayName("should pass when no event has throwable of class and message")
+        void shouldPassWhenNoEventHasThrowableOfClassAndMessage() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new IOException("message 1"));
+            AssertLogger.assertNoEventWithThrowable(logger, IOException.class, "message 2");
+            AssertLogger.assertNoEventWithThrowable(logger, RuntimeException.class, "message 1");
+        }
+
+        @Test
+        @DisplayName("should throw when event has throwable of class and message")
+        void shouldThrowWhenEventHasThrowableOfClassAndMessage() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new IOException("message 1"));
+            assertThrows(AssertionError.class, () -> AssertLogger.assertNoEventWithThrowable(logger, IOException.class, "message 1"));
+        }
+    }
+
+    @Nested
+    @DisplayName("assertEventNot")
+    class AssertEventNot {
+        @Test
+        @DisplayName("should pass when event does not contain message parts")
+        void shouldPassWhenEventDoesNotContainMessageParts() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1");
+            AssertLogger.assertEventNot(logger, 0, "message 2");
+        }
+
+        @Test
+        @DisplayName("should throw when event contains message parts")
+        void shouldThrowWhenEventContainsMessageParts() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertEventNot(logger, 0, "message 1"));
+        }
+
+        @Test
+        @DisplayName("should pass when event does not have marker")
+        void shouldPassWhenEventDoesNotHaveMarker() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            logger.info(marker1, "message 1");
+            final Marker marker2 = MarkerFactory.getMarker("marker2");
+            AssertLogger.assertEventNot(logger, 0, marker2);
+        }
+
+        @Test
+        @DisplayName("should throw when event has marker")
+        void shouldThrowWhenEventHasMarker() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            logger.info(marker1, "message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertEventNot(logger, 0, marker1));
+        }
+
+        @Test
+        @DisplayName("should pass when event does not have level and message")
+        void shouldPassWhenEventDoesNotHaveLevelAndMessage() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1");
+            AssertLogger.assertEventNot(logger, 0, Level.INFO, "message 2");
+            AssertLogger.assertEventNot(logger, 0, Level.ERROR, "message 1");
+        }
+
+        @Test
+        @DisplayName("should throw when event has level and message")
+        void shouldThrowWhenEventHasLevelAndMessage() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertEventNot(logger, 0, Level.INFO, "message 1"));
+        }
+
+        @Test
+        @DisplayName("should pass when event does not have marker and message")
+        void shouldPassWhenEventDoesNotHaveMarkerAndMessage() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            final Marker marker2 = MarkerFactory.getMarker("marker2");
+            logger.info(marker1, "message 1");
+            AssertLogger.assertEventNot(logger, 0, marker1, "message 2");
+            AssertLogger.assertEventNot(logger, 0, marker2, "message 1");
+        }
+
+        @Test
+        @DisplayName("should throw when event has marker and message")
+        void shouldThrowWhenEventHasMarkerAndMessage() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            logger.info(marker1, "message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertEventNot(logger, 0, marker1, "message 1"));
+        }
+
+        @Test
+        @DisplayName("should pass when event does not have level, marker and message")
+        void shouldPassWhenEventDoesNotHaveLevelMarkerAndMessage() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            final Marker marker2 = MarkerFactory.getMarker("marker2");
+            logger.info(marker1, "message 1");
+            AssertLogger.assertEventNot(logger, 0, Level.INFO, marker1, "message 2");
+            AssertLogger.assertEventNot(logger, 0, Level.INFO, marker2, "message 1");
+            AssertLogger.assertEventNot(logger, 0, Level.ERROR, marker1, "message 1");
+        }
+
+        @Test
+        @DisplayName("should throw when event has level, marker and message")
+        void shouldThrowWhenEventHasLevelMarkerAndMessage() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            logger.info(marker1, "message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertEventNot(logger, 0, Level.INFO, marker1, "message 1"));
+        }
+
+        @Test
+        @DisplayName("should pass when event does not have level and marker")
+        void shouldPassWhenEventDoesNotHaveLevelAndMarker() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            final Marker marker2 = MarkerFactory.getMarker("marker2");
+            logger.info(marker1, "message 1");
+            AssertLogger.assertEventNot(logger, 0, Level.INFO, marker2);
+            AssertLogger.assertEventNot(logger, 0, Level.ERROR, marker1);
+        }
+
+        @Test
+        @DisplayName("should throw when event has level and marker")
+        void shouldThrowWhenEventHasLevelAndMarker() {
+            final Logger logger = new MockLogger("test");
+            final Marker marker1 = MarkerFactory.getMarker("marker1");
+            logger.info(marker1, "message 1");
+            assertThrows(AssertionError.class, () -> AssertLogger.assertEventNot(logger, 0, Level.INFO, marker1));
+        }
+    }
+
+    @Nested
+    @DisplayName("assertEventNotWithThrowable")
+    class AssertEventNotWithThrowable {
+        @Test
+        @DisplayName("should pass when event does not have throwable")
+        void shouldPassWhenEventDoesNotHaveThrowable() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1");
+            AssertLogger.assertEventNotWithThrowable(logger, 0);
+        }
+
+        @Test
+        @DisplayName("should throw when event has throwable")
+        void shouldThrowWhenEventHasThrowable() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new Exception());
+            assertThrows(AssertionError.class, () -> AssertLogger.assertEventNotWithThrowable(logger, 0));
+        }
+
+        @Test
+        @DisplayName("should pass when event does not have throwable of class")
+        void shouldPassWhenEventDoesNotHaveThrowableOfClass() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new IOException());
+            AssertLogger.assertEventNotWithThrowable(logger, 0, RuntimeException.class);
+        }
+
+        @Test
+        @DisplayName("should throw when event has throwable of class")
+        void shouldThrowWhenEventHasThrowableOfClass() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new IOException());
+            assertThrows(AssertionError.class, () -> AssertLogger.assertEventNotWithThrowable(logger, 0, IOException.class));
+        }
+
+        @Test
+        @DisplayName("should pass when event does not have throwable of class and message")
+        void shouldPassWhenEventDoesNotHaveThrowableOfClassAndMessage() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new IOException("message 1"));
+            AssertLogger.assertEventNotWithThrowable(logger, 0, IOException.class, "message 2");
+            AssertLogger.assertEventNotWithThrowable(logger, 0, RuntimeException.class, "message 1");
+        }
+
+        @Test
+        @DisplayName("should throw when event has throwable of class and message")
+        void shouldThrowWhenEventHasThrowableOfClassAndMessage() {
+            final Logger logger = new MockLogger("test");
+            logger.info("message 1", new IOException("message 1"));
+            assertThrows(AssertionError.class, () -> AssertLogger.assertEventNotWithThrowable(logger, 0, IOException.class, "message 1"));
         }
     }
 
