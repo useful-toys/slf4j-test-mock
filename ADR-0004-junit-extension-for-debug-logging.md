@@ -63,7 +63,7 @@ We will implement a **JUnit 5 Extension** (`AssertLoggerDebugExtension`) that au
 
 ### Implementation Details
 
-1. **Extension Class**: `org.usefultoys.slf4jtestmock.AssertLoggerDebugExtension`
+1. **Extension Class**: `org.usefultoys.slf4jtestmock.MockLoggerDebugExtension`
    - Implements `InvocationInterceptor` from JUnit 5
    - Intercepts test method execution
    - Catches `AssertionError` exceptions
