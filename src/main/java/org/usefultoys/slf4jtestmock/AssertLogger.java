@@ -239,6 +239,13 @@ public class AssertLogger {
         AssertHelper.assertThrowableOfInstance(event, throwable, expectedThrowableClass);
     }
 
+    /**
+     * Asserts that the logger has recorded an event at the specified index with a throwable whose message contains the expected parts.
+     *
+     * @param logger                the Logger instance to check (must be a MockLogger)
+     * @param eventIndex            the index of the event to check
+     * @param throwableMessageParts a list of substrings that should be present in the throwable's message
+     */
     public void assertEventWithThrowable(final @NonNull Logger logger, final int eventIndex, final @NonNull String... throwableMessageParts) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final Throwable throwable = event.getThrowable();
@@ -394,53 +401,121 @@ public class AssertLogger {
 
     // Per-index negative assertions (negation of assertEvent...)
 
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT contain the given message parts.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     * @param messageParts     an array of substrings that should NOT be present in the event's message
+     */
     public void assertEventNot(final @NonNull Logger logger, final int eventIndex, final @NonNull String... messageParts) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final boolean match = AssertHelper.hasAllMessageParts(event, messageParts);
         Assertions.assertFalse(match, String.format("should not have event at index %d with message parts; unexpected message parts: %s", eventIndex, String.join(", ", messageParts)));
     }
 
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT have the given marker.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     * @param unexpectedMarker the marker that should NOT be present in the event
+     */
     public void assertEventNot(final @NonNull Logger logger, final int eventIndex, final Marker unexpectedMarker) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final boolean match = AssertHelper.isMarker(event, unexpectedMarker);
         Assertions.assertFalse(match, String.format("should not have event at index %d with marker; unexpected marker: %s", eventIndex, unexpectedMarker));
     }
 
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT have the given level AND message parts.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     * @param unexpectedLevel  the log level that should NOT be present in the event
+     * @param messageParts     an array of substrings that should NOT be present in the event's message
+     */
     public void assertEventNot(final @NonNull Logger logger, final int eventIndex, final Level unexpectedLevel, final @NonNull String... messageParts) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final boolean match = AssertHelper.isLevel(event, unexpectedLevel) && AssertHelper.hasAllMessageParts(event, messageParts);
         Assertions.assertFalse(match, String.format("should not have event at index %d with level and message parts; unexpected level: %s, unexpected message parts: %s", eventIndex, unexpectedLevel, String.join(", ", messageParts)));
     }
 
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT have the given marker AND message parts.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     * @param unexpectedMarker the marker that should NOT be present in the event
+     * @param messageParts     an array of substrings that should NOT be present in the event's message
+     */
     public void assertEventNot(final @NonNull Logger logger, final int eventIndex, final Marker unexpectedMarker, final @NonNull String... messageParts) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final boolean match = AssertHelper.isMarker(event, unexpectedMarker) && AssertHelper.hasAllMessageParts(event, messageParts);
         Assertions.assertFalse(match, String.format("should not have event at index %d with marker and message parts; unexpected marker: %s, unexpected message parts: %s", eventIndex, unexpectedMarker, String.join(", ", messageParts)));
     }
 
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT have the given level, marker AND message parts.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     * @param unexpectedLevel  the log level that should NOT be present in the event
+     * @param unexpectedMarker the marker that should NOT be present in the event
+     * @param messageParts     an array of substrings that should NOT be present in the event's message
+     */
     public void assertEventNot(final @NonNull Logger logger, final int eventIndex, final Level unexpectedLevel, final Marker unexpectedMarker, final @NonNull String... messageParts) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final boolean match = AssertHelper.isLevel(event, unexpectedLevel) && AssertHelper.isMarker(event, unexpectedMarker) && AssertHelper.hasAllMessageParts(event, messageParts);
         Assertions.assertFalse(match, String.format("should not have event at index %d with level, marker and message parts; unexpected level: %s, unexpected marker: %s, unexpected message parts: %s", eventIndex, unexpectedLevel, unexpectedMarker, String.join(", ", messageParts)));
     }
 
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT have the given level AND marker.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     * @param unexpectedLevel  the log level that should NOT be present in the event
+     * @param unexpectedMarker the marker that should NOT be present in the event
+     */
     public void assertEventNot(final @NonNull Logger logger, final int eventIndex, final Level unexpectedLevel, final Marker unexpectedMarker) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final boolean match = AssertHelper.isLevel(event, unexpectedLevel) && AssertHelper.isMarker(event, unexpectedMarker);
         Assertions.assertFalse(match, String.format("should not have event at index %d with level and marker; unexpected level: %s, unexpected marker: %s", eventIndex, unexpectedLevel, unexpectedMarker));
     }
 
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT have any throwable.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     */
     public void assertEventNotWithThrowable(final @NonNull Logger logger, final int eventIndex) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         Assertions.assertNull(event.getThrowable(), String.format("event at index %d should NOT have a throwable; actual: %s", eventIndex, event.getThrowable()));
     }
 
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT have a throwable of the given type.
+     *
+     * @param logger                   the Logger instance to check (must be a MockLogger)
+     * @param eventIndex               the index of the event to check
+     * @param unexpectedThrowableClass the throwable class that should NOT be present in the event
+     */
     public void assertEventNotWithThrowable(final @NonNull Logger logger, final int eventIndex, final Class<? extends Throwable> unexpectedThrowableClass) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final boolean match = AssertHelper.isThrowableOfInstance(event.getThrowable(), unexpectedThrowableClass);
         Assertions.assertFalse(match, String.format("should not have event at index %d with throwable of type; unexpected type: %s", eventIndex, unexpectedThrowableClass.getName()));
     }
 
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT have a throwable of the given type AND message parts.
+     *
+     * @param logger                   the Logger instance to check (must be a MockLogger)
+     * @param eventIndex               the index of the event to check
+     * @param unexpectedThrowableClass the throwable class that should NOT be present in the event
+     * @param throwableMessageParts    an array of substrings that should NOT be present in the throwable's message
+     */
     public void assertEventNotWithThrowable(final @NonNull Logger logger, final int eventIndex, final Class<? extends Throwable> unexpectedThrowableClass, final @NonNull String... throwableMessageParts) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         final boolean match = AssertHelper.isThrowableOfInstance(event.getThrowable(), unexpectedThrowableClass) && AssertHelper.hasAllMessageParts(event.getThrowable(), throwableMessageParts);
