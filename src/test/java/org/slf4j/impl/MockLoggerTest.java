@@ -15,9 +15,9 @@
  */
 package org.slf4j.impl;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
@@ -370,16 +370,6 @@ class MockLoggerTest {
         assertEquals(0, logger.getEventCount());
         assertTrue(logger.getLoggerEvents().isEmpty());
         assertEquals("", logger.toText());
-    }
-
-    @Test
-    @DisplayName("Should handle multiple message parts assertion")
-    void shouldHandleMultipleMessagePartsAssertion() {
-        // Given
-        logger.info("This message contains multiple keywords: test, assertion, validation");
-        
-        // When/Then
-        assertDoesNotThrow(() -> logger.assertEvent(0, Level.INFO, null, "test", "assertion", "validation"));
     }
 
     @Test

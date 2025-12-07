@@ -37,7 +37,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.impl.MockLoggerEvent;
-import org.slf4j.impl.testutils.AIGenerated;
 
 import java.util.Collections;
 
