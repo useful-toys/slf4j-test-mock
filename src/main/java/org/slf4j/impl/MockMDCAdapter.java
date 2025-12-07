@@ -42,7 +42,7 @@ public class MockMDCAdapter implements MDCAdapter {
     /**
      * Thread-local storage for MDC data. Each thread gets its own map instance.
      */
-    private final ThreadLocal<Map<String, String>> value = ThreadLocal.withInitial(HashMap::new);
+    private static final ThreadLocal<Map<String, String>> value = ThreadLocal.withInitial(HashMap::new);
 
     @Override
 	public void put(final String key, final String val) {
@@ -72,6 +72,18 @@ public class MockMDCAdapter implements MDCAdapter {
     @Override
 	public Map<String, String> getCopyOfContextMap() {
         return new HashMap<>(value.get());
+    }
+
+    /**
+     * Clears the ThreadLocal storage for the current thread.
+     * This is useful for test cleanup to prevent data leakage between tests.
+     * <p>
+     * Note: This method removes the entire ThreadLocal value for the current thread,
+     * not just the entries in the map. This helps with memory management and ensures
+     * complete isolation between test runs.
+     */
+    public void clearAll() {
+        value.remove();
     }
 
 }
