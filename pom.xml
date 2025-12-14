@@ -116,9 +116,11 @@
                 <configuration>
                     <release>8</release>
                     <compilerArgs>
-                        <!-- Enables all warnings except 'options' (which warns about obsolete source/target values) -->
+                        <!-- Enable all warnings except 'options' (which warns about obsolete source/target values) -->
                         <arg>-Xlint:all</arg>
                         <arg>-Xlint:-options</arg>
+                        <!-- Suppress deprecation warnings for intentional use of SLF4J 1.7 deprecated APIs -->
+                        <arg>-Xlint:-deprecation</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
