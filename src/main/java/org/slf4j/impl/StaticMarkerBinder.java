@@ -15,8 +15,8 @@
  */
 package org.slf4j.impl;
 
-import lombok.experimental.FieldDefaults;
 import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.slf4j.IMarkerFactory;
 import org.slf4j.helpers.BasicMarkerFactory;
 import org.slf4j.spi.MarkerFactoryBinder;
@@ -30,9 +30,13 @@ import org.slf4j.spi.MarkerFactoryBinder;
  * This class is part of the SLF4J service provider interface and should not be used directly
  * by application code. SLF4J will automatically discover and use this binding when it's
  * present on the classpath.
+ * <p>
+ * <b>Note:</b> This class implements the deprecated {@link MarkerFactoryBinder} interface
+ * for backward compatibility with SLF4J 1.7.x. For SLF4J 2.0+, use {@link MockServiceProvider} instead.
  *
  * @author Daniel Felix Ferber
  */
+@SuppressWarnings("deprecation") // Intentional use of deprecated API for SLF4J 1.7.x compatibility
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public final class StaticMarkerBinder implements MarkerFactoryBinder {
 
