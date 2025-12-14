@@ -244,7 +244,7 @@ public class AssertLogger {
      *
      * @param logger                the Logger instance to check (must be a MockLogger)
      * @param eventIndex            the index of the event to check
-     * @param throwableMessageParts a list of substrings that should be present in the throwable's message
+     * @param throwableMessageParts an array of substrings that should be present in the throwable's message
      */
     public void assertEventWithThrowable(final @NonNull Logger logger, final int eventIndex, final @NonNull String... throwableMessageParts) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
@@ -259,7 +259,7 @@ public class AssertLogger {
      * @param logger                the Logger instance to check (must be a MockLogger)
      * @param eventIndex            the index of the event to check
      * @param expectedThrowableClass        the expected throwable class
-     * @param throwableMessageParts a list of substrings that should be present in the throwable's message
+     * @param throwableMessageParts an array of substrings that should be present in the throwable's message
      */
     public void assertEventWithThrowable(final @NonNull Logger logger, final int eventIndex, final @NonNull Class<? extends Throwable> expectedThrowableClass, final @NonNull String... throwableMessageParts) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
@@ -298,7 +298,7 @@ public class AssertLogger {
      *
      * @param logger                the Logger instance to check (must be a MockLogger)
      * @param expectedThrowableClass        the expected throwable class
-     * @param throwableMessageParts a list of substrings that should be present in the throwable's message
+     * @param throwableMessageParts an array of substrings that should be present in the throwable's message
      */
     public void assertHasEventWithThrowable(final @NonNull Logger logger, final @NonNull Class<? extends Throwable> expectedThrowableClass, final @NonNull String... throwableMessageParts) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
@@ -323,6 +323,12 @@ public class AssertLogger {
 
     // Negative assertion methods (no event matching the criteria in any position)
 
+    /**
+     * Asserts that the logger has not recorded any event containing the specified message parts.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param messageParts     an array of substrings that should not be present together in any event's message
+     */
     public void assertNoEvent(final @NonNull Logger logger, final @NonNull String... messageParts) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
@@ -331,6 +337,12 @@ public class AssertLogger {
             String.format("should have no events containing message parts; unexpected message parts: %s", String.join(", ", messageParts)));
     }
 
+    /**
+     * Asserts that the logger has not recorded any event with the specified marker.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param expectedMarker   the marker that should not be present in any event
+     */
     public void assertNoEvent(final @NonNull Logger logger, final @NonNull Marker expectedMarker) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
@@ -339,6 +351,13 @@ public class AssertLogger {
             String.format("should have no events with marker; unexpected marker: %s", expectedMarker));
     }
 
+    /**
+     * Asserts that the logger has not recorded any event with the specified level and message parts.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param expectedLevel    the log level that should not be present in any event
+     * @param messageParts     an array of substrings that should not be present together in any event's message
+     */
     public void assertNoEvent(final @NonNull Logger logger, final @NonNull Level expectedLevel, final @NonNull String... messageParts) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
@@ -347,6 +366,13 @@ public class AssertLogger {
             String.format("should have no events with level and message parts; unexpected level: %s, unexpected messages: %s", expectedLevel, String.join(", ", messageParts)));
     }
 
+    /**
+     * Asserts that the logger has not recorded any event with the specified marker and message parts.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param expectedMarker   the marker that should not be present in any event
+     * @param messageParts     an array of substrings that should not be present together in any event's message
+     */
     public void assertNoEvent(final @NonNull Logger logger, final @NonNull Marker expectedMarker, final @NonNull String... messageParts) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
@@ -355,6 +381,14 @@ public class AssertLogger {
             String.format("should have no events with marker and message parts; unexpected marker: %s, unexpected messages: %s", expectedMarker, String.join(", ", messageParts)));
     }
 
+    /**
+     * Asserts that the logger has not recorded any event with the specified level, marker and message parts.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param expectedLevel    the log level that should not be present in any event
+     * @param expectedMarker   the marker that should not be present in any event
+     * @param messageParts     an array of substrings that should not be present together in any event's message
+     */
     public void assertNoEvent(final @NonNull Logger logger, final @NonNull Level expectedLevel, final @NonNull Marker expectedMarker, final @NonNull String... messageParts) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
@@ -363,6 +397,13 @@ public class AssertLogger {
             String.format("should have no events with level, marker and message parts; unexpected level: %s, unexpected marker: %s, unexpected messages: %s", expectedLevel, expectedMarker, String.join(", ", messageParts)));
     }
 
+    /**
+     * Asserts that the logger has not recorded any event with the specified level and marker.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param expectedLevel    the log level that should not be present in any event
+     * @param expectedMarker   the marker that should not be present in any event
+     */
     public void assertNoEvent(final @NonNull Logger logger, final @NonNull Level expectedLevel, final @NonNull Marker expectedMarker) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
@@ -371,6 +412,11 @@ public class AssertLogger {
             String.format("should have no events with level and marker; unexpected level: %s, unexpected marker: %s", expectedLevel, expectedMarker));
     }
 
+    /**
+     * Asserts that the logger has not recorded any event with a throwable.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     */
     public void assertNoEventWithThrowable(final @NonNull Logger logger) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
@@ -378,6 +424,12 @@ public class AssertLogger {
         Assertions.assertFalse(hasEvent, "should have no events with a throwable");
     }
 
+    /**
+     * Asserts that the logger has not recorded any event with a throwable of the specified type.
+     *
+     * @param logger                    the Logger instance to check (must be a MockLogger)
+     * @param expectedThrowableClass    the throwable class that should not be present in any event
+     */
     public void assertNoEventWithThrowable(final @NonNull Logger logger, final @NonNull Class<? extends Throwable> expectedThrowableClass) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
@@ -385,6 +437,13 @@ public class AssertLogger {
         Assertions.assertFalse(hasEvent, String.format("should have no events with throwable type; unexpected type: %s", expectedThrowableClass.getName()));
     }
 
+    /**
+     * Asserts that the logger has not recorded any event with a throwable of the specified type and message parts.
+     *
+     * @param logger                    the Logger instance to check (must be a MockLogger)
+     * @param expectedThrowableClass    the throwable class that should not be present in any event
+     * @param throwableMessageParts     an array of substrings that should not be present in the throwable's message
+     */
     public void assertNoEventWithThrowable(final @NonNull Logger logger, final @NonNull Class<? extends Throwable> expectedThrowableClass, final @NonNull String... throwableMessageParts) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
@@ -392,6 +451,12 @@ public class AssertLogger {
         Assertions.assertFalse(hasEvent, String.format("should have no events with throwable type and message parts; unexpected type: %s, unexpected messages: %s", expectedThrowableClass.getName(), String.join(", ", throwableMessageParts)));
     }
 
+    /**
+     * Asserts that the logger has not recorded any event with a throwable containing the specified message parts.
+     *
+     * @param logger                 the Logger instance to check (must be a MockLogger)
+     * @param throwableMessageParts  an array of substrings that should not be present in the throwable's message
+     */
     public void assertNoEventWithThrowable(final @NonNull Logger logger, final @NonNull String... throwableMessageParts) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
