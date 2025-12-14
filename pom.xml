@@ -167,6 +167,27 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <!-- Validate Javadoc during the build to prevent unexpected failues when releasing a version. -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>validate-javadoc</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>javadoc</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Fail the build if Javadoc generation fails. -->
+                            <failOnError>true</failOnError>
+                            <!-- Match compiler release 8 sources to avoid doclint differences. -->
+                            <source>8</source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
