@@ -63,10 +63,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <!-- Default to SLF4J 1.7.x (can be overridden by profiles) -->
+        <!-- Defaults to SLF4J 2.0.x (can be overridden by profiles) -->
         <slf4j.version>2.0.16</slf4j.version>
         <lombok.version>1.18.42</lombok.version>
-        <junit5.version>5.14.1</junit5.version> <!-- Updated to stable version -->
+        <junit5.version>5.14.1</junit5.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <versions-maven-plugin.version>2.20.1</versions-maven-plugin.version>
         <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
@@ -109,12 +109,15 @@
         </pluginManagement>
         <plugins>
             <plugin>
+                <!-- Configures compiler to create Java 8 compatible classes. -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <release>8</release>
                     <compilerArgs>
+                        <!-- Enables all warnings except 'options' (which warns about obsolete source/target values) -->
+                        <arg>-Xlint:all</arg>
                         <arg>-Xlint:-options</arg>
                     </compilerArgs>
                 </configuration>
@@ -144,7 +147,7 @@
                 </executions>
             </plugin>
             <plugin>
-                <!-- Enforce Maven and Java version requirements. -->
+                <!-- Enforces Maven and Java version requirements. -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>3.3.0</version>
@@ -168,7 +171,7 @@
                 </executions>
             </plugin>
             <plugin>
-                <!-- Validate Javadoc during the build to prevent unexpected failues when releasing a version. -->
+                <!-- Validates Javadoc during the build to prevent unexpected failues when releasing a version. -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
@@ -180,9 +183,9 @@
                             <goal>javadoc</goal>
                         </goals>
                         <configuration>
-                            <!-- Fail the build if Javadoc generation fails. -->
+                            <!-- Fails the build if Javadoc generation fails. -->
                             <failOnError>true</failOnError>
-                            <!-- Match compiler release 8 sources to avoid doclint differences. -->
+                            <!-- Matches compiler release 8 sources to avoid doclint differences. -->
                             <source>8</source>
                         </configuration>
                     </execution>
@@ -193,6 +196,9 @@
 
     <profiles>
         <profile>
+            <!-- SLF4J 1.7 Profile - uses SLF4J 1.7.x API for testing compatibility.
+                 Note: Excludes MockServiceProvider.java from compilation as it requires SLF4J 2.0 API.
+                 However, a JAR compiled with SLF4J 2.0 (including MockServiceProvider) works fine with SLF4J 1.7 runtime. -->
             <id>slf4j-1.7</id>
             <properties>
                 <slf4j.version>1.7.36</slf4j.version>
@@ -204,12 +210,8 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>${maven-compiler-plugin.version}</version>
                         <configuration>
-                            <release>8</release>
-                            <compilerArgs>
-                                <arg>-Xlint:-options</arg>
-                            </compilerArgs>
                             <excludes>
-                                <!-- Exclude SLF4J 2.0 specific files -->
+                                <!-- Exclude SLF4J 2.0 specific files that cannot compile with SLF4J 1.7 API -->
                                 <exclude>**/MockServiceProvider.java</exclude>
                             </excludes>
                         </configuration>
@@ -218,12 +220,34 @@
             </build>
         </profile>
 
-        <!-- SLF4J Version Profiles -->
+        <!-- SLF4J 2.0 Profile - uses SLF4J 2.0.x (this is also the default configuration) -->
         <profile>
             <id>slf4j-2.0</id>
+            <properties>
+                <slf4j.version>2.0.16</slf4j.version>
+            </properties>
         </profile>
 
-        <!-- Release Profile -->
+        <!-- SLF4J Activation Tests Profile - runs only SLF4J activation tests from org.slf4j.impl package. -->
+        <profile>
+            <id>slf4j-activation-tests-olny</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven-surefire-plugin.version}</version>
+                        <configuration>
+                            <includes>
+                                <include>**/org/slf4j/impl/**/*Test.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Release Profile - creates source and javadoc artifacts, signs artifacts and deploys to Maven Central. -->
         <profile>
             <id>release</id>
             <build>
@@ -275,13 +299,10 @@
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>maven-central</publishingServerId>
-<!--                            <autoPublish>true</autoPublish>-->
-<!--                            <waitUntil>published</waitUntil>-->
                         </configuration>
                     </plugin>
                 </plugins>
             </build>
         </profile>
     </profiles>
-
 </project>
