@@ -563,9 +563,10 @@ public class MockLogger implements Logger {
      *
      * @param eventIndex  the index of the event to check
      * @param messagePart a substring that should be present in the event's message
-     * @deprecated Use methods from @{@link AssertLogger} instead.
+     * @deprecated Use {@link AssertLogger#assertEvent(Logger, int, String...)} instead.
      */
     @Deprecated
+    @SuppressWarnings("deprecation")
     public void assertEvent(final int eventIndex, final String messagePart) {
         AssertLogger.assertEvent(this, eventIndex, messagePart);
     }
@@ -575,9 +576,10 @@ public class MockLogger implements Logger {
      *
      * @param eventIndex     the index of the event to check
      * @param expectedMarker the expected marker of the event
-     * @deprecated Use methods from @{@link AssertLogger} instead.
+     * @deprecated Use {@link AssertLogger#assertEvent(Logger, int, Marker)} instead.
      */
     @Deprecated
+    @SuppressWarnings("deprecation")
     public void assertEvent(final int eventIndex, final Marker expectedMarker) {
         AssertLogger.assertEvent(this, eventIndex, expectedMarker);
     }
@@ -588,9 +590,10 @@ public class MockLogger implements Logger {
      * @param eventIndex    the index of the event to check
      * @param expectedLevel the expected log level of the event
      * @param messagePart   a substring that should be present in the event's message
-     * @deprecated Use methods from @{@link AssertLogger} instead.
+     * @deprecated Use {@link AssertLogger#assertEvent(Logger, int, Level, String...)} instead.
      */
     @Deprecated
+    @SuppressWarnings("deprecation")
     public void assertEvent(final int eventIndex, final Level expectedLevel, final String messagePart) {
         AssertLogger.assertEvent(this, eventIndex, expectedLevel, messagePart);
     }
@@ -601,9 +604,10 @@ public class MockLogger implements Logger {
      * @param eventIndex     the index of the event to check
      * @param expectedMarker the expected marker of the event
      * @param messagePart    a substring that should be present in the event's message
-     * @deprecated Use methods from @{@link AssertLogger} instead.
+     * @deprecated Use {@link AssertLogger#assertEvent(Logger, int, Marker, String...)} instead.
      */
     @Deprecated
+    @SuppressWarnings("deprecation")
     public void assertEvent(final int eventIndex, final Marker expectedMarker, final String messagePart) {
         AssertLogger.assertEvent(this, eventIndex, expectedMarker, messagePart);
     }
@@ -615,9 +619,10 @@ public class MockLogger implements Logger {
      * @param expectedLevel  the expected log level of the event
      * @param expectedMarker the expected marker of the event
      * @param messagePart    a substring that should be present in the event's message
-     * @deprecated Use methods from @{@link AssertLogger} instead.
+     * @deprecated Use {@link AssertLogger#assertEvent(Logger, int, Level, Marker, String...)} instead.
      */
     @Deprecated
+    @SuppressWarnings("deprecation")
     public void assertEvent(final int eventIndex, final Level expectedLevel, final Marker expectedMarker, final String messagePart) {
         AssertLogger.assertEvent(this, eventIndex, expectedLevel, expectedMarker, messagePart);
     }
@@ -629,9 +634,10 @@ public class MockLogger implements Logger {
      * @param expectedLevel  the expected log level of the event
      * @param expectedMarker the expected marker of the event
      * @param messageParts   an array of substrings that should be present in the event's message
-     * @deprecated Use methods from @{@link AssertLogger} instead.
+     * @deprecated Use {@link AssertLogger#assertEvent(Logger, int, Level, Marker, String...)} instead.
      */
     @Deprecated
+    @SuppressWarnings("deprecation")
     public void assertEvent(final int eventIndex, final Level expectedLevel, final Marker expectedMarker, final String... messageParts) {
         AssertLogger.assertEvent(this, eventIndex, expectedLevel, expectedMarker, messageParts);
     }
@@ -642,9 +648,10 @@ public class MockLogger implements Logger {
      * @param eventIndex     the index of the event to check
      * @param expectedLevel  the expected log level of the event
      * @param expectedMarker the expected marker of the event
-     * @deprecated Use methods from @{@link AssertLogger} instead.
+     * @deprecated Use {@link AssertLogger#assertEvent(Logger, int, Level, Marker)} instead.
      */
     @Deprecated
+    @SuppressWarnings("deprecation")
     public void assertEvent(final int eventIndex, final Level expectedLevel, final Marker expectedMarker) {
         AssertLogger.assertEvent(this, eventIndex, expectedLevel, expectedMarker);
     }
