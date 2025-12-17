@@ -54,6 +54,13 @@ import java.util.Map;
 public class MockLoggerDebugExtension implements InvocationInterceptor {
 
     /**
+     * Default constructor for JUnit 5 extension instantiation.
+     */
+    public MockLoggerDebugExtension() {
+        // Default constructor
+    }
+
+    /**
      * Intercepts test method execution to catch assertion errors and print logged events.
      *
      * @param invocation        the invocation to proceed with

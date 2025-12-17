@@ -61,9 +61,31 @@ public class MockLoggerEvent {
     private final String message;
     private final Object[] arguments;
 
+    /**
+     * Represents the logging level of an event.
+     */
     public enum Level {
 
-        ERROR, WARN, INFO, DEBUG, TRACE
+        /**
+         * Error level.
+         */
+        ERROR,
+        /**
+         * Warning level.
+         */
+        WARN,
+        /**
+         * Information level.
+         */
+        INFO,
+        /**
+         * Debug level.
+         */
+        DEBUG,
+        /**
+         * Trace level.
+         */
+        TRACE
     }
 
     /**

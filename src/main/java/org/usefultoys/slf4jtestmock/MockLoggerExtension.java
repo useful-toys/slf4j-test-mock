@@ -25,6 +25,13 @@ public class MockLoggerExtension implements
         ParameterResolver {
 
     /**
+     * Default constructor for JUnit 5 extension instantiation.
+     */
+    public MockLoggerExtension() {
+        // Default constructor
+    }
+
+    /**
      * Initializes {@link Logger} fields in the test instance.
      * <p>
      * This method is called once per test instance. It scans for fields of type
