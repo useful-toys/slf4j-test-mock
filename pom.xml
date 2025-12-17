@@ -232,7 +232,7 @@
 
         <!-- SLF4J Activation Tests Profile - runs only SLF4J activation tests from org.slf4j.impl package. -->
         <profile>
-            <id>slf4j-activation-tests-olny</id>
+            <id>slf4j-activation-tests-only</id>
             <build>
                 <plugins>
                     <plugin>
