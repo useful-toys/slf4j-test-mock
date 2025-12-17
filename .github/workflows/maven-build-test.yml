@@ -23,10 +23,28 @@ permissions:
   checks: write
 
 jobs:
+  # Job 0: Check if code changes occurred to avoid unnecessary builds
+  changes:
+    name: Check for Code Changes
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - name: Check for code changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            code:
+              - '**'
+              - '!**.md'
+
   # Job 1: Build artifact with SLF4J 2.0 (includes both Static Binders and ServiceProvider)
   build:
-    runs-on: ubuntu-latest
     name: Build (JDK 21, SLF4J 2.0)
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -73,9 +91,10 @@ jobs:
           retention-days: 1
 
   # Job 2: Run activation tests on all JDK/SLF4J combinations (except JDK 21 + SLF4J 2.0 already tested)
-  test:
+  test-compatibility:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, changes]
+    if: needs.changes.outputs.code == 'true'
     strategy:
       matrix:
         java-version: [8, 11, 17, 21]
@@ -90,8 +109,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v5
@@ -108,6 +125,22 @@ jobs:
 
       - name: Run activation tests with ${{ matrix.slf4j-profile }}
         run: sh mvnw surefire:test -P ${{ matrix.slf4j-profile }},slf4j-activation-tests-only --batch-mode -Denforcer.skip=true
+
+  # Job 3: Final status check to simplify branch protection rules
+  status-gateway:
+    name: Status Gateway
+    needs: [changes, build, test-compatibility]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        run: |
+          if [[ "${{ needs.changes.result }}" != "success" ]] || \
+             [[ "${{ needs.changes.outputs.code }}" == "true" && ("${{ needs.build.result }}" != "success" || "${{ needs.test-compatibility.result }}" != "success") ]]; then
+            echo "Required jobs failed or were cancelled"
+            exit 1
+          fi
+          echo "All checks passed or correctly skipped"
 
 
 
