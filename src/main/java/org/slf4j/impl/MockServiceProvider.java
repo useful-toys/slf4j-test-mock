@@ -35,6 +35,13 @@ import org.slf4j.spi.SLF4JServiceProvider;
 public class MockServiceProvider implements SLF4JServiceProvider {
 
     /**
+     * Default constructor for SLF4J service provider instantiation.
+     */
+    public MockServiceProvider() {
+        // Default constructor
+    }
+
+    /**
      * Declare the version of the SLF4J API this implementation is compiled against.
      * The value of this field is modified with each major release.
      */

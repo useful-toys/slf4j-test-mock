@@ -41,6 +41,13 @@ import org.slf4j.spi.LoggerFactoryBinder;
 public final class StaticLoggerBinder implements LoggerFactoryBinder {
 
     /**
+     * Default constructor for SLF4J static binder instantiation.
+     */
+    public StaticLoggerBinder() {
+        // Default constructor
+    }
+
+    /**
      * The requested SLF4J API version that this binding supports.
      */
     public static final String REQUESTED_API_VERSION = "1.6";

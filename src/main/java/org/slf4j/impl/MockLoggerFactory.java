@@ -50,6 +50,13 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class MockLoggerFactory implements ILoggerFactory {
 
+    /**
+     * Default constructor for SLF4J factory instantiation.
+     */
+    public MockLoggerFactory() {
+        // Default constructor
+    }
+
     Map<String, Logger> nameToLogger = new HashMap<>();
     static final MockLoggerFactory instance = new MockLoggerFactory();
 

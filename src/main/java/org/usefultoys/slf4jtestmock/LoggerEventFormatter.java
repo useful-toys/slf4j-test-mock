@@ -28,8 +28,14 @@ import java.util.List;
  *
  * @author Daniel Felix Ferber
  */
-@UtilityClass
-public class LoggerEventFormatter {
+public final class LoggerEventFormatter {
+
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
+    private LoggerEventFormatter() {
+        // Utility class
+    }
 
     /**
      * Formats all logged events from a logger into a readable string.
@@ -38,7 +44,7 @@ public class LoggerEventFormatter {
      * @param logger the Logger instance (must be a MockLogger)
      * @return a formatted string containing all logged events
      */
-    public String formatLoggedEvents(final Logger logger) {
+    public static String formatLoggedEvents(final Logger logger) {
         if (!(logger instanceof MockLogger)) {
             return "  (logger is not a MockLogger)";
         }

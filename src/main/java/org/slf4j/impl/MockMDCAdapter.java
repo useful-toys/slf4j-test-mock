@@ -42,6 +42,13 @@ import java.util.Map;
 public class MockMDCAdapter implements MDCAdapter {
 
     /**
+     * Default constructor for SLF4J MDC adapter instantiation.
+     */
+    public MockMDCAdapter() {
+        // Default constructor
+    }
+
+    /**
      * Thread-local storage for MDC data. Each thread gets its own map instance.
      */
     private static final ThreadLocal<Map<String, String>> value = ThreadLocal.withInitial(HashMap::new);
