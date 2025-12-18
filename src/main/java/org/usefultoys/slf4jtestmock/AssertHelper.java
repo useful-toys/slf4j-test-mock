@@ -184,6 +184,31 @@ class AssertHelper {
     }
 
     /**
+     * Asserts that a log event has the expected argument.
+     *
+     * @param event            the log event to check.
+     * @param expectedArgument the expected argument.
+     * @throws AssertionError if the event's arguments do not contain the expected one.
+     */
+    void assertHasArgument(final MockLoggerEvent event, final Object expectedArgument) {
+        final boolean hasArgument = hasArgument(event, expectedArgument);
+        Assertions.assertTrue(hasArgument,
+            String.format("should have expected argument at eventIndex %d; expected: %s, actual arguments: %s",
+                event.getEventIndex(), expectedArgument, Arrays.toString(event.getArguments())));
+    }
+
+    /**
+     * Checks if a log event has the expected argument.
+     *
+     * @param event            the log event to check.
+     * @param expectedArgument the expected argument.
+     * @return {@code true} if the event's arguments contain the expected one, {@code false} otherwise.
+     */
+    boolean hasArgument(final MockLoggerEvent event, final Object expectedArgument) {
+        return Arrays.stream(event.getArguments()).anyMatch(expectedArgument::equals);
+    }
+
+    /**
      * Checks if a log event's formatted message contains all specified substrings.
      *
      * @param event        the log event.

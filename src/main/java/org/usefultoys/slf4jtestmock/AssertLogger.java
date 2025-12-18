@@ -470,6 +470,32 @@ public final class AssertLogger {
         Assertions.assertFalse(hasEvent, String.format("should have no events with throwable type and message parts; unexpected messages: %s", String.join(", ", throwableMessageParts)));
     }
 
+    /**
+     * Asserts that the logger has recorded an event at the specified index with the expected argument.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     * @param expectedArgument the expected argument
+     */
+    public static void assertEventHasArgument(final @NonNull Logger logger, final int eventIndex, final @NonNull Object expectedArgument) {
+        final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
+        AssertHelper.assertHasArgument(event, expectedArgument);
+    }
+
+    /**
+     * Asserts that the logger has recorded at least one event with the expected argument.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param expectedArgument the expected argument
+     */
+    public static void assertHasEventWithArgument(final @NonNull Logger logger, final @NonNull Object expectedArgument) {
+        final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
+        final boolean hasEvent = loggerEvents.stream()
+            .anyMatch(event -> AssertHelper.hasArgument(event, expectedArgument));
+        Assertions.assertTrue(hasEvent,
+            String.format("should have at least one event with expected argument; expected: %s", expectedArgument));
+    }
+
     // Per-index negative assertions (negation of assertEvent...)
 
     /**
