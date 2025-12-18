@@ -5,7 +5,7 @@
 #
 # Strategy:
 # 1. Build once with JDK 21 + SLF4J 2.0 (generates JAR that works with both SLF4J 1.7 and 2.0)
-# 2. Run activation tests on all JDK/SLF4J combinations using the compiled artifact
+# 2. Run activation tests on all JDK/SLF4J combinations using the Maven local cache
 
 name: Maven Build, Test and Analyze
 
@@ -62,8 +62,11 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build and run full test suite with SLF4J 2.0
-        run: sh mvnw clean verify -P slf4j-2.0 --batch-mode
+      - name: Build and install with SLF4J 2.0
+        run: sh mvnw clean install -P slf4j-2.0 --batch-mode
+
+      - name: Run full test suite with SLF4J 2.0
+        run: sh mvnw verify -P slf4j-2.0 --batch-mode
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -83,15 +86,6 @@ jobs:
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           coverage-reports: ./target/site/jacoco/jacoco.xml
-
-      - name: Upload compiled artifacts for reuse
-        uses: actions/upload-artifact@v4
-        with:
-          name: compiled-artifacts
-          path: |
-            target/classes/
-            target/test-classes/
-          retention-days: 1
 
   # Job 2: Run activation tests on all JDK/SLF4J combinations (except JDK 21 + SLF4J 2.0 already tested)
   test-compatibility:
@@ -119,12 +113,6 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
           cache: 'maven'
-
-      - name: Download compiled artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: compiled-artifacts
-          path: target/
 
       - name: Run activation tests with ${{ matrix.slf4j-profile }}
         run: sh mvnw surefire:test -P ${{ matrix.slf4j-profile }},slf4j-activation-tests-only --batch-mode -Denforcer.skip=true
