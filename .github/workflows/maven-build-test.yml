@@ -40,7 +40,8 @@ jobs:
           filters: |
             code:
               - '**'
-              - '!**.md'
+              - '!*.md'
+              - '!**/*.md'
 
   # Job 1: Build artifact with SLF4J 2.0 (includes both Static Binders and ServiceProvider)
   build:
