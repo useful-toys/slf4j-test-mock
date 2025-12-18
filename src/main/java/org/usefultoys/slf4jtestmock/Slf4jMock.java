@@ -29,8 +29,7 @@ import java.lang.annotation.Target;
  *         methodLogger.debug("This is a method-scoped logger");
  *     }
  * }
- * }</pre>
- */
+ * }</pre>/
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 public @interface Slf4jMock {
@@ -45,7 +44,7 @@ public @interface Slf4jMock {
     String value() default "";
 
     /**
-     * The class whose canonical name will be used as the logger name (e.g., MyService.class -> "com.example.MyService").
+     * The class whose canonical name will be used as the logger name (e.g., {@code MyService.class -> "com.example.MyService"}).
      * This is used if {@link #value()} is empty.
      *
      * @return The class to derive the logger name from.

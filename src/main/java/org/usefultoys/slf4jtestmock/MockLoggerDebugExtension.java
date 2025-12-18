@@ -46,7 +46,6 @@ import java.util.Map;
  *     }
  * }
  * }</pre>
- *
  * @author Daniel Felix Ferber
  * @see LoggerEventFormatter
  */

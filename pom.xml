@@ -218,6 +218,18 @@
                             </excludes>
                         </configuration>
                     </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${maven-javadoc-plugin.version}</version>
+                        <configuration>
+                            <excludePackageNames>org.slf4j.impl.MockServiceProvider</excludePackageNames>
+                            <sourceFileExcludes>
+                                <!-- Exclude SLF4J 2.0 specific files from Javadoc generation -->
+                                <sourceFileExclude>**/MockServiceProvider.java</sourceFileExclude>
+                            </sourceFileExcludes>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
