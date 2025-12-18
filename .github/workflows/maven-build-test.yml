@@ -87,13 +87,6 @@ jobs:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           coverage-reports: ./target/site/jacoco/jacoco.xml
 
-      - name: Upload compiled test classes for reuse
-        uses: actions/upload-artifact@v4
-        with:
-          name: compiled-test-classes
-          path: target/test-classes/
-          retention-days: 1
-
   # Job 2: Run activation tests on all JDK/SLF4J combinations (except JDK 21 + SLF4J 2.0 already tested)
   test-compatibility:
     runs-on: ubuntu-latest
@@ -120,12 +113,6 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
           cache: 'maven'
-
-      - name: Download compiled test classes
-        uses: actions/download-artifact@v4
-        with:
-          name: compiled-test-classes
-          path: target/test-classes/
 
       - name: Run activation tests with ${{ matrix.slf4j-profile }}
         run: sh mvnw surefire:test -P ${{ matrix.slf4j-profile }},slf4j-activation-tests-only --batch-mode -Denforcer.skip=true
