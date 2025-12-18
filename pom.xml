@@ -172,31 +172,43 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <!-- Validates Javadoc during the build to prevent unexpected failues when releasing a version. -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>validate-javadoc</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>javadoc</goal>
-                        </goals>
-                        <configuration>
-                            <!-- Fails the build if Javadoc generation fails. -->
-                            <failOnError>true</failOnError>
-                            <!-- Matches compiler release 8 sources to avoid doclint differences. -->
-                            <source>8</source>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <profile>
+            <!-- Javadoc Validation Profile - Auto-activates with JDK 21+ to validate Javadoc syntax.
+                 This is separated from the default build because older JDK versions don't support newer Javadoc syntax. -->
+            <id>javadoc-validation</id>
+            <activation>
+                <jdk>[21,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${maven-javadoc-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>validate-javadoc</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>javadoc</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- Fails the build if Javadoc generation fails. -->
+                                    <failOnError>true</failOnError>
+                                    <!-- Matches compiler release 8 sources to avoid doclint differences. -->
+                                    <source>8</source>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <profile>
             <!-- SLF4J 1.7 Profile - uses SLF4J 1.7.x API for testing compatibility.
                  Note: Excludes MockServiceProvider.java from compilation as it requires SLF4J 2.0 API.
