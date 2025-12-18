@@ -176,12 +176,78 @@
     </build>
 
     <profiles>
+
         <profile>
-            <!-- Javadoc Validation Profile - Auto-activates with JDK 21+ to validate Javadoc syntax.
-                 This is separated from the default build because older JDK versions don't support newer Javadoc syntax. -->
+            <!-- SLF4J 1.7 Profile - uses SLF4J 1.7.x API for testing compatibility.
+                 
+                 Design Decision:
+                 - MockServiceProvider.java is excluded from compilation because it only exists in SLF4J 2.0.
+                 - However, a JAR compiled with SLF4J 2.0 (including MockServiceProvider) works fine with SLF4J 1.7 runtime.
+                 - Javadoc generation is also configured to skip org.slf4j.* packages to prevent:
+                   1. Trying to generate docs for SLF4J 2.0-only classes when SLF4J 1.7 is active
+                   2. Polluting the public API documentation with internal implementation classes
+                 - This ensures clean, focused public API documentation that only includes org.usefultoys.slf4jtestmock. -->
+            <id>slf4j-1.7</id>
+            <properties>
+                <slf4j.version>1.7.36</slf4j.version>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>${maven-compiler-plugin.version}</version>
+                        <configuration>
+                            <excludes>
+                                <!-- Exclude SLF4J 2.0 specific files that cannot compile with SLF4J 1.7 API -->
+                                <exclude>**/MockServiceProvider.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${maven-javadoc-plugin.version}</version>
+                        <configuration>
+                            <excludePackageNames>org.slf4j</excludePackageNames>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- SLF4J 2.0 Profile - uses SLF4J 2.0.x (this is also the default configuration).
+             
+             Design Decision:
+             - No conditional activation. Profile only activates when explicitly requested via -P flag.
+             - This allows builds with JDK 8/11/17 using SLF4J 2.0 without triggering Javadoc validation.
+             - Defines enable-javadoc-validation property to signal that javadoc-validation can run.
+             - Javadoc validation is handled separately by the javadoc-validation profile. -->
+        <profile>
+            <id>slf4j-2.0</id>
+            <properties>
+                <slf4j.version>2.0.16</slf4j.version>
+                <enable-javadoc-validation>true</enable-javadoc-validation>
+            </properties>
+        </profile>
+
+        <!-- Javadoc Validation Profile - Auto-activates with JDK 21+ AND SLF4J 2.0 to validate Javadoc syntax.
+             
+             Design Decision:
+             - This profile auto-activates ONLY when BOTH conditions are met:
+               1. JDK 21+ (older JDK versions don't support newer Javadoc syntax features)
+               2. SLF4J 2.0 profile is active (validated by the enable-javadoc-validation property)
+             - This ensures Javadoc validation only runs when all classes including MockServiceProvider are available.
+             - In GitHub Actions, this naturally runs on JDK 21 builds with SLF4J 2.0 and is skipped on other combinations.
+             - Only generates docs for public API, excluding internal SLF4J implementation classes. -->
+        <profile>
             <id>javadoc-validation</id>
             <activation>
                 <jdk>[21,)</jdk>
+                <property>
+                    <name>enable-javadoc-validation</name>
+                    <value>true</value>
+                </property>
             </activation>
             <build>
                 <plugins>
@@ -201,45 +267,14 @@
                                     <failOnError>true</failOnError>
                                     <!-- Matches compiler release 8 sources to avoid doclint differences. -->
                                     <source>8</source>
+                                    <!-- Only generate docs for public API, exclude internal SLF4J implementation -->
+                                    <excludePackageNames>org.slf4j</excludePackageNames>
                                 </configuration>
                             </execution>
                         </executions>
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-
-        <profile>
-            <!-- SLF4J 1.7 Profile - uses SLF4J 1.7.x API for testing compatibility.
-                 Note: Excludes MockServiceProvider.java from compilation as it requires SLF4J 2.0 API.
-                 However, a JAR compiled with SLF4J 2.0 (including MockServiceProvider) works fine with SLF4J 1.7 runtime. -->
-            <id>slf4j-1.7</id>
-            <properties>
-                <slf4j.version>1.7.36</slf4j.version>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>${maven-compiler-plugin.version}</version>
-                        <configuration>
-                            <excludes>
-                                <!-- Exclude SLF4J 2.0 specific files that cannot compile with SLF4J 1.7 API -->
-                                <exclude>**/MockServiceProvider.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <!-- SLF4J 2.0 Profile - uses SLF4J 2.0.x (this is also the default configuration) -->
-        <profile>
-            <id>slf4j-2.0</id>
-            <properties>
-                <slf4j.version>2.0.16</slf4j.version>
-            </properties>
         </profile>
 
         <!-- SLF4J Activation Tests Profile - runs only SLF4J activation tests from org.slf4j.impl package. -->
