@@ -64,7 +64,7 @@ jobs:
           cache: 'maven'
 
       - name: Build and run full test suite with SLF4J 2.0
-        run: sh mvnw clean verify -P slf4j-2.0 --batch-mode
+        run: sh mvnw clean verify -P slf4j-2.0,javadoc-validation --batch-mode
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
