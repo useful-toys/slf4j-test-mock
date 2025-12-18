@@ -216,39 +216,18 @@
             </build>
         </profile>
 
-        <!-- SLF4J 2.0 Profile - uses SLF4J 2.0.x (this is also the default configuration).
-             
-             Design Decision:
-             - No conditional activation. Profile only activates when explicitly requested via -P flag.
-             - This allows builds with JDK 8/11/17 using SLF4J 2.0 without triggering Javadoc validation.
-             - Defines enable-javadoc-validation property to signal that javadoc-validation can run.
-             - Javadoc validation is handled separately by the javadoc-validation profile. -->
+        <!-- SLF4J 2.0 Profile - uses SLF4J 2.0.x (this is also the default configuration) -->
         <profile>
             <id>slf4j-2.0</id>
             <properties>
                 <slf4j.version>2.0.16</slf4j.version>
-                <enable-javadoc-validation>true</enable-javadoc-validation>
             </properties>
         </profile>
 
-        <!-- Javadoc Validation Profile - Auto-activates with JDK 21+ AND SLF4J 2.0 to validate Javadoc syntax.
-             
-             Design Decision:
-             - This profile auto-activates ONLY when BOTH conditions are met:
-               1. JDK 21+ (older JDK versions don't support newer Javadoc syntax features)
-               2. SLF4J 2.0 profile is active (validated by the enable-javadoc-validation property)
-             - This ensures Javadoc validation only runs when all classes including MockServiceProvider are available.
-             - In GitHub Actions, this naturally runs on JDK 21 builds with SLF4J 2.0 and is skipped on other combinations.
-             - Only generates docs for public API, excluding internal SLF4J implementation classes. -->
+        <!-- Javadoc Validation Profile - validates Javadoc syntax when explicitly requested.
+             Activate with: mvn clean verify -P javadoc-validation -->
         <profile>
             <id>javadoc-validation</id>
-            <activation>
-                <jdk>[21,)</jdk>
-                <property>
-                    <name>enable-javadoc-validation</name>
-                    <value>true</value>
-                </property>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -258,7 +237,7 @@
                         <executions>
                             <execution>
                                 <id>validate-javadoc</id>
-                                <phase>verify</phase>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>javadoc</goal>
                                 </goals>
@@ -324,6 +303,10 @@
                                 <goals>
                                     <goal>jar</goal>
                                 </goals>
+                                <configuration>
+                                    <!-- Only generate docs for public API, exclude internal SLF4J implementation -->
+                                    <excludePackageNames>org.slf4j</excludePackageNames>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
