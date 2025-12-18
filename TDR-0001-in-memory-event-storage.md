@@ -1,4 +1,4 @@
-# ADR-0001: In-Memory Event Storage for MockLogger
+# TDR-0001: In-Memory Event Storage for MockLogger
 
 **Status**: Accepted
 

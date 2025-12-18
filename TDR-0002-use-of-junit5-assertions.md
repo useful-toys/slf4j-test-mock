@@ -1,4 +1,4 @@
-# ADR-0002: Use JUnit Jupiter for Tests and Assertions
+# TDR-0002: Use JUnit Jupiter for Tests and Assertions
 
 Date: 2025-12-03
 
