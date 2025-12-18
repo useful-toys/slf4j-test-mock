@@ -49,7 +49,7 @@ mvn clean install
 mvn clean install -P slf4j-2.0
 ```
 
-For more details on the multi-version support strategy, see [ADR-0004: Multiple SLF4J Version Support](ADR-0004-multiple-slf4j-version-support.md) and [BUILD-PROFILES.md](BUILD-PROFILES.md).
+For more details on the multi-version support strategy, see [TDR-0005: Multiple SLF4J Version Support](TDR-0005-multiple-slf4j-version-support.md) and [BUILD-PROFILES.md](BUILD-PROFILES.md).
 
 ## Maven Dependency
 
@@ -552,7 +552,7 @@ This library uses different service provider mechanisms depending on the SLF4J v
 The correct implementation is automatically selected at runtime based on your SLF4J classpath. No configuration needed!
 
 For detailed information about the multi-version support strategy, see:
-- [ADR-0004: Multiple SLF4J Version Support](ADR-0004-multiple-slf4j-version-support.md)
+- [TDR-0005: Multiple SLF4J Version Support](TDR-0005-multiple-slf4j-version-support.md)
 - [BUILD-PROFILES.md](BUILD-PROFILES.md) - For building from source
 
 ## FAQ

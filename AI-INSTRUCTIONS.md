@@ -15,6 +15,7 @@ The main command to run tests is `mvnw.cmd test` (Windows) or `./mvnw test` (Uni
 
 ### General
 - The project language is English. All identifiers, strings, Javadocs, comments, and documentation must be in English.
+- Commit messages and pull requests must be in English.
 - The project must use Java 8.
 - Follow existing code style and conventions.
 - Prefer using Lombok annotations (e.g., `@Getter`, `@ToString`, `@FieldDefaults`) to reduce boilerplate code.

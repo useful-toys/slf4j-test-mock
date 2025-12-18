@@ -1,4 +1,4 @@
-# ADR-0004: Use JUnit 5 Extension for Debug Logging on Test Failures
+# TDR-0004: Use JUnit 5 Extension for Debug Logging on Test Failures
 
 ## Status
 
