@@ -176,7 +176,7 @@ mvn clean verify -P slf4j-2.0
 
 ## References
 
-- [ADR-0004: Multiple SLF4J Version Support](../ADR-0004-multiple-slf4j-version-support.md)
+- [TDR-0005: Multiple SLF4J Version Support](../TDR-0005-multiple-slf4j-version-support.md)
 - [BUILD-PROFILES.md](../BUILD-PROFILES.md)
 - [GitHub Actions Matrix Strategy](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs)
 

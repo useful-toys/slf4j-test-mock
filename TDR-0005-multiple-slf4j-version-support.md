@@ -1,4 +1,4 @@
-# ADR-0004: Support for Multiple SLF4J API Versions
+# TDR-0005: Support for Multiple SLF4J API Versions
 
 ## Status
 Accepted
@@ -126,7 +126,7 @@ This ensures:
 ## References
 - [SLF4J 2.0 Migration Guide](https://www.slf4j.org/faq.html#changesInVersion200)
 - [SLF4J Service Provider Interface](https://www.slf4j.org/manual.html#swapping)
-- ADR-0003: Focus on SLF4J Facade
+- TDR-0003: Focus on SLF4J Facade
 
 ## Date
 2025-12-07
