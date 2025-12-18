@@ -1360,4 +1360,84 @@ class AssertLoggerTest {
             assertTrue(error.getMessage().contains("should contain expected message part at position 0"));
         }
     }
+
+    @Nested
+    @DisplayName("assertEventHasArgument")
+    class AssertEventHasArgument {
+
+        @Test
+        @DisplayName("should pass when argument exists")
+        void shouldPassWhenArgumentExists() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Message with arg: {}", "arg1");
+            AssertLogger.assertEventHasArgument(logger, 0, "arg1");
+        }
+
+        @Test
+        @DisplayName("should pass when argument is one of several")
+        void shouldPassWithMultipleArguments() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Message with args: {}, {}", "arg1", "arg2");
+            AssertLogger.assertEventHasArgument(logger, 0, "arg2");
+        }
+
+        @Test
+        @DisplayName("should throw when argument is missing")
+        void shouldThrowWhenArgumentIsMissing() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Message with arg: {}", "arg1");
+            final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEventHasArgument(logger, 0, "arg2"));
+            assertTrue(error.getMessage().contains("should have expected argument"));
+        }
+
+        @Test
+        @DisplayName("should throw when no arguments exist")
+        void shouldThrowWhenNoArgumentsExist() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Message with no arguments");
+            final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEventHasArgument(logger, 0, "arg1"));
+            assertTrue(error.getMessage().contains("should have expected argument"));
+        }
+
+        @Test
+        @DisplayName("should throw when event index is out of bounds")
+        void shouldThrowWhenEventIndexIsOutOfBounds() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Message");
+            final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertEventHasArgument(logger, 1, "arg1"));
+            assertTrue(error.getMessage().contains("should have enough logger events"));
+        }
+    }
+
+    @Nested
+    @DisplayName("assertHasEventWithArgument")
+    class AssertHasEventWithArgument {
+
+        @Test
+        @DisplayName("should pass when any event has the argument")
+        void shouldPassWhenAnyEventHasTheArgument() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Message 1, arg: {}", "arg1");
+            logger.info("Message 2, arg: {}", "arg2");
+            AssertLogger.assertHasEventWithArgument(logger, "arg2");
+        }
+
+        @Test
+        @DisplayName("should throw when no event has the argument")
+        void shouldThrowWhenNoEventHasTheArgument() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Message 1, arg: {}", "arg1");
+            logger.info("Message 2, arg: {}", "arg2");
+            final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertHasEventWithArgument(logger, "arg3"));
+            assertTrue(error.getMessage().contains("should have at least one event with expected argument"));
+        }
+
+        @Test
+        @DisplayName("should throw when no events exist")
+        void shouldThrowWhenNoEventsExist() {
+            final Logger logger = new MockLogger("test");
+            final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertHasEventWithArgument(logger, "arg1"));
+            assertTrue(error.getMessage().contains("should have at least one event with expected argument"));
+        }
+    }
 }
