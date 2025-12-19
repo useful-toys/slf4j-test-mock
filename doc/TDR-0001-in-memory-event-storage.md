@@ -59,6 +59,3 @@ The `MockLogger` class provides public methods to access these captured events, 
 *   **Description**: Log events would be inserted into a database like H2 or SQLite.
 *   **Rejected because**: This would introduce significant overhead and external dependencies (e.g., a JDBC driver), which is overly complex for the problem domain. It goes against the goal of creating a lightweight, dependency-free testing utility.
 
----
-
-This ADR clarifies why the current approach was chosen and documents the trade-offs involved. It serves as a reference for future development and for users seeking to understand the library's design.

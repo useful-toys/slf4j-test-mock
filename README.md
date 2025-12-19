@@ -37,19 +37,7 @@ The library automatically works with whichever SLF4J version is on your classpat
 - Supports new SLF4J 2.0 features including MDC Deque methods
 - Java 8+ compatible
 
-### Build from Source
-
-If you're building this library from source and need to test with a specific SLF4J version:
-
-```bash
-# Build with SLF4J 1.7.x (default)
-mvn clean install
-
-# Build with SLF4J 2.0.x
-mvn clean install -P slf4j-2.0
-```
-
-For more details on the multi-version support strategy, see [TDR-0005: Multiple SLF4J Version Support](TDR-0005-multiple-slf4j-version-support.md) and [BUILD-PROFILES.md](BUILD-PROFILES.md).
+For more details on the multi-version support strategy, see [TDR-0005: Multiple SLF4J Version Support](doc/TDR-0005-multiple-slf4j-version-support.md).
 
 ## Maven Dependency
 
@@ -57,109 +45,123 @@ For more details on the multi-version support strategy, see [TDR-0005: Multiple 
 <dependency>
     <groupId>org.usefultoys</groupId>
     <artifactId>slf4j-test-mock</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.6</version>
     <scope>test</scope>
 </dependency>
 ```
 
-## Quick Start
+## Usage
 
-### Recommended Usage with AssertLogger
+This library provides multiple ways to test logging in your application. Choose the approach that best fits your testing style.
 
-The `AssertLogger` class provides convenient static methods for asserting log events - this is the recommended way to use this library:
+### Recommended: JUnit 5 Integration with @Slf4jMock
+
+The easiest and most convenient way to use this library is with the JUnit 5 extension, which automatically manages logger lifecycle:
+
+```java
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.impl.MockLoggerEvent.Level;
+import org.usefultoys.slf4jtestmock.MockLoggerExtension;
+import org.usefultoys.slf4jtestmock.Slf4jMock;
+
+import static org.usefultoys.slf4jtestmock.AssertLogger.*;
+
+@ExtendWith(MockLoggerExtension.class)
+class MyServiceTest {
+    
+    @Slf4jMock
+    Logger logger;
+    
+    @Test
+    void shouldLogUserLogin() {
+        // Act - your code logs via the injected logger
+        logger.info("User {} logged in from {}", "alice", "192.168.1.1");
+        logger.warn("Invalid password attempt for user {}", "bob");
+        
+        // Assert - verify the logged events using message parts
+        // You don't need to match the exact message - just key fragments
+        // This is useful when messages contain variable values
+        assertEventCount(logger, 2);
+        assertEvent(logger, 0, Level.INFO, "alice", "logged in", "192.168.1.1");
+        assertEvent(logger, 1, Level.WARN, "Invalid password", "bob");
+    }
+}
+```
+
+**Benefits:**
+- The mocked Logger is automatically and transparently injected by the extension
+- Events are automatically cleared before each test
+- No manual setup or teardown code required
+- Logger is ready to use immediately
+
+**Configuration Options:**
+
+You can declare multiple loggers in the same test class using different `@Slf4jMock` annotations (though typically one logger per test is sufficient):
+
+```java
+@ExtendWith(MockLoggerExtension.class)
+class ConfigurationExampleTest {
+    
+    // Multiple loggers in the same test (less common, but supported)
+    @Slf4jMock(type = MyService.class)
+    Logger serviceLogger;
+    
+    @Slf4jMock("security.audit")
+    Logger auditLogger;
+    
+    // Disable specific levels
+    @Slf4jMock(debugEnabled = false, traceEnabled = false)
+    Logger productionLogger;
+    
+    @Test
+    void testWithConfiguration() {
+        productionLogger.debug("This won't be captured");
+        productionLogger.info("This will be captured");
+        
+        assertEventCount(productionLogger, 1);
+    }
+}
+```
+
+### Alternative: Manual Logger Management
+
+If you prefer more control or aren't using JUnit 5, you can manage loggers manually:
 
 ```java
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.MockLogger;
 import org.slf4j.impl.MockLoggerEvent.Level;
-import static org.slf4j.impl.AssertLogger.*;
 
-class MyTest {
-    private Logger logger;
-    private MockLogger mockLogger;
+import static org.usefultoys.slf4jtestmock.AssertLogger.*;
+
+class ManualTest {
     
     @BeforeEach
     void setUp() {
-        logger = LoggerFactory.getLogger("test");
-        mockLogger = (MockLogger) logger;
+        MockLogger mockLogger = (MockLogger) LoggerFactory.getLogger("test");
         mockLogger.clearEvents();
-        mockLogger.setEnabled(true);
     }
     
     @Test
-    void testWithAssertLogger() {
-        logger.info("Processing user: {}", "alice");
-        logger.error("Failed to process user: {}", "bob");
+    void testLogging() {
+        Logger logger = LoggerFactory.getLogger("test");
         
-        // Use AssertLogger for cleaner assertions
-        assertEvent(logger, 0, Level.INFO, "Processing", "alice");
-        assertEvent(logger, 1, Level.ERROR, "Failed", "bob");
+        logger.info("User {} logged in", "john");
+        logger.warn("Low disk space: {} GB", 2.5);
+        
+        assertEventCount(logger, 2);
+        assertEvent(logger, 0, Level.INFO, "john", "logged in");
+        assertEvent(logger, 1, Level.WARN, "Low disk space");
     }
 }
 ```
 
-### Alternative: Direct MockLogger Usage
+### AssertLogger API
 
-You can also work directly with `MockLogger` for more detailed inspection:
-
-```java
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.impl.MockLogger;
-import org.slf4j.impl.MockLoggerEvent.Level;
-
-@Test
-void testLogging() {
-    // Get logger - automatically returns MockLogger during tests
-    Logger logger = LoggerFactory.getLogger("test.logger");
-    MockLogger mockLogger = (MockLogger) logger;
-    mockLogger.clearEvents();
-    mockLogger.setEnabled(true);
-    
-    // Log some messages
-    logger.info("User {} logged in", "john");
-    logger.warn("Low disk space: {} GB remaining", 2.5);
-    
-    // Assert log events
-    assertEquals(2, mockLogger.getEventCount());
-    assertEquals("User john logged in", mockLogger.getEvent(0).getFormattedMessage());
-    assertEquals(Level.INFO, mockLogger.getEvent(0).getLevel());
-}
-```
-
-## Core Classes
-
-### MockLogger
-
-The main mock logger implementation that captures log events in memory.
-
-**Key Methods:**
-- `getEventCount()` - Returns the number of captured events
-- `getEvent(int index)` - Returns a specific event by index
-- `getLoggerEvents()` - Returns all events as an unmodifiable list
-- `clearEvents()` - Clears all captured events
-- `setEnabled(boolean)` - Enables/disables all log levels
-- `setInfoEnabled(boolean)` - Controls specific log levels
-- `toText()` - Returns all messages as a formatted string
-
-### MockLoggerEvent
-
-Immutable representation of a single log event.
-
-**Key Properties:**
-- `getLevel()` - The log level (TRACE, DEBUG, INFO, WARN, ERROR)
-- `getFormattedMessage()` - The formatted message with placeholders resolved
-- `getMessage()` - The original message template
-- `getArguments()` - The message arguments
-- `getMarker()` - The associated marker (if any)
-- `getThrowable()` - The associated throwable (if any)
-- `getLoggerName()` - The name of the logger that created this event
-- `getMdc()` - The MDC context at the time of logging
-
-### AssertLogger
-
-Utility class providing static assertion methods for testing log events.
+The `AssertLogger` utility class provides comprehensive assertion methods for verifying log events:
 
 **Index-Based Event Assertions:**
 - `assertEvent(Logger, int, String...)` - Assert message contains one or more text parts
@@ -193,373 +195,321 @@ Utility class providing static assertion methods for testing log events.
 - `assertEventSequence(Logger, Marker...)` - Assert exact sequence of markers
 - `assertEventSequence(Logger, String...)` - Assert exact sequence of message parts
 
-## Advanced Usage
+## Common Testing Scenarios
 
-### Controlling Log Levels
+### Testing Messages with Message Parts
+
+The recommended approach is to verify log messages using **message parts** instead of matching the exact message. This makes tests more resilient to message format changes and handles variable content gracefully.
 
 ```java
-@Test
-void testLogLevelControl() {
-    Logger logger = LoggerFactory.getLogger("test");
-    MockLogger mockLogger = (MockLogger) logger;
-    mockLogger.clearEvents();
-    mockLogger.setEnabled(true);
+@ExtendWith(MockLoggerExtension.class)
+class MessagePartsTest {
     
-    // Disable debug logging
-    mockLogger.setDebugEnabled(false);
+    @Slf4jMock
+    Logger logger;
     
-    logger.debug("This won't be captured");
-    logger.info("This will be captured");
+    @Test
+    void shouldVerifyMessageParts() {
+        // Log message with variable values
+        String userId = "alice";
+        String ipAddress = "192.168.1.100";
+        long timestamp = System.currentTimeMillis();
+        
+        logger.info("User {} logged in from {} at {}", userId, ipAddress, timestamp);
+        
+        // Assert using message parts - no need to match the exact message or timestamp
+        // Just verify the key parts you care about are present
+        assertEvent(logger, 0, Level.INFO, "User", "alice", "logged in", "192.168.1.100");
+        
+        // This is better than trying to match the exact formatted message:
+        // ❌ assertEquals("User alice logged in from 192.168.1.100 at 1234567890", event.getFormattedMessage());
+        // ✅ The message parts approach works regardless of exact formatting
+    }
     
-    assertEquals(1, mockLogger.getEventCount());
-    assertEvent(logger, 0, Level.INFO, "This will be captured");
+    @Test
+    void shouldHandleVariableMessages() {
+        // Message format may vary based on conditions
+        double diskSpace = 15.7;
+        logger.warn("Low disk space: {} GB remaining", diskSpace);
+        
+        // Verify key parts without worrying about exact number formatting
+        assertEvent(logger, 0, Level.WARN, "Low disk space", "GB");
+        // The exact value "15.7" might be formatted differently, but key words are stable
+    }
 }
 ```
 
-### Working with Markers
+**Advantages of using message parts:**
+- **Resilient to formatting changes**: Tests don't break when message format changes slightly
+- **Handles variable values**: No need to know exact timestamps, IDs, or calculated values
+- **Focus on what matters**: Verify the important keywords and data, ignore formatting details
+- **More readable**: Clear intent about what you're verifying
+
+### Testing with Markers
 
 ```java
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-@Test
-void testWithMarkers() {
-    Logger logger = LoggerFactory.getLogger("test");
-    MockLogger mockLogger = (MockLogger) logger;
-    mockLogger.clearEvents();
-    mockLogger.setEnabled(true);
-    Marker securityMarker = MarkerFactory.getMarker("SECURITY");
+@ExtendWith(MockLoggerExtension.class)
+class SecurityTest {
     
-    logger.warn(securityMarker, "Unauthorized access attempt from IP: {}", "192.168.1.100");
+    @Slf4jMock("security.audit")
+    Logger logger;
     
-    assertEvent(logger, 0, Level.WARN, securityMarker, "Unauthorized", "192.168.1.100");
+    @Test
+    void shouldLogSecurityEvents() {
+        Marker securityMarker = MarkerFactory.getMarker("SECURITY");
+        
+        logger.warn(securityMarker, "Unauthorized access attempt from IP: {}", "192.168.1.100");
+        
+        assertEvent(logger, 0, Level.WARN, securityMarker, "Unauthorized", "192.168.1.100");
+    }
 }
 ```
 
 ### Testing Exception Logging
 
 ```java
-@Test
-void testExceptionLogging() {
-    Logger logger = LoggerFactory.getLogger("test");
-    MockLogger mockLogger = (MockLogger) logger;
-    mockLogger.clearEvents();
-    mockLogger.setEnabled(true);
-    Exception ex = new RuntimeException("Test exception with details");
+@ExtendWith(MockLoggerExtension.class)
+class ExceptionHandlingTest {
     
-    logger.error("Operation failed", ex);
+    @Slf4jMock
+    Logger logger;
     
-    assertEvent(logger, 0, Level.ERROR, "Operation failed");
-    assertEventWithThrowable(logger, 0, RuntimeException.class, "Test", "details");
+    @Test
+    void shouldLogExceptions() {
+        Exception ex = new RuntimeException("Database connection failed due to network timeout");
+        
+        logger.error("Operation failed while processing user data", ex);
+        
+        // Verify message parts - no need to match the exact error message
+        assertEvent(logger, 0, Level.ERROR, "Operation failed", "processing");
+        
+        // Verify exception type and exception message parts
+        assertEventWithThrowable(logger, 0, RuntimeException.class, "Database", "connection", "network");
+    }
 }
 ```
 
-### Clearing Events Between Tests
+### Testing Multiple Events with Index
+
+When your code logs multiple messages with different levels and markers, use the event index to verify each one individually:
 
 ```java
-@BeforeEach
-void setUp() {
-    MockLogger mockLogger = (MockLogger) LoggerFactory.getLogger("test");
-    mockLogger.clearEvents();
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
+
+@ExtendWith(MockLoggerExtension.class)
+class MultipleEventsTest {
+    
+    @Slf4jMock
+    Logger logger;
+    
+    @Test
+    void shouldLogMultipleEventsAndVerifyEachByIndex() {
+        // Arrange - create markers
+        Marker performanceMarker = MarkerFactory.getMarker("PERFORMANCE");
+        Marker securityMarker = MarkerFactory.getMarker("SECURITY");
+        
+        // Act - log multiple events with different levels and markers
+        logger.info("Application started successfully");
+        logger.debug(performanceMarker, "Database query took {} ms", 145);
+        logger.warn(securityMarker, "Failed login attempt for user {}", "admin");
+        logger.info(performanceMarker, "Cache hit ratio: {}%", 87.5);
+        logger.error("Critical system error detected");
+        
+        // Assert - verify total count first
+        assertEventCount(logger, 5);
+        
+        // Then verify each event individually by index
+        assertEvent(logger, 0, Level.INFO, "Application started");
+        assertEvent(logger, 1, Level.DEBUG, performanceMarker, "Database query", "145 ms");
+        assertEvent(logger, 2, Level.WARN, securityMarker, "Failed login", "admin");
+        assertEvent(logger, 3, Level.INFO, performanceMarker, "Cache hit", "87.5");
+        assertEvent(logger, 4, Level.ERROR, "Critical system error");
+    }
 }
 ```
 
-### Inspecting All Log Output
+### Controlling Log Levels
 
 ```java
-@Test
-void testCompleteLogOutput() {
-    Logger logger = LoggerFactory.getLogger("test");
-    MockLogger mockLogger = (MockLogger) logger;
-    mockLogger.clearEvents();
-    mockLogger.setEnabled(true);
+@ExtendWith(MockLoggerExtension.class)
+class LogLevelTest {
     
-    logger.info("Starting process");
-    logger.debug("Processing step 1");
-    logger.info("Process completed");
+    @Slf4jMock(debugEnabled = false)
+    Logger logger;
     
-    // Get all messages as formatted text
-    String allMessages = mockLogger.toText();
-    assertTrue(allMessages.contains("Starting process"));
-    
-    // Or inspect individual events
-    List<MockLoggerEvent> events = mockLogger.getLoggerEvents();
-    assertEquals(3, events.size());
+    @Test
+    void shouldNotCaptureDebugMessages() {
+        logger.debug("This won't be captured");
+        logger.info("This will be captured");
+        
+        assertEventCount(logger, 1);
+        assertEvent(logger, 0, Level.INFO, "This will be captured");
+    }
 }
 ```
 
-### Using Existence-Based Assertions
+### Verifying Event Sequences
 
 ```java
-@Test
-void testExistenceAssertions() {
-    Logger logger = LoggerFactory.getLogger("test");
-    MockLogger mockLogger = (MockLogger) logger;
-    mockLogger.clearEvents();
-    mockLogger.setEnabled(true);
+@ExtendWith(MockLoggerExtension.class)
+class WorkflowTest {
     
-    logger.info("User john logged in from 127.0.0.1");
-    logger.warn("Invalid password attempt");
-    logger.error("Database connection failed");
+    @Slf4jMock
+    Logger logger;
     
-    // Check if any event contains specific text parts (order doesn't matter)
-    assertHasEvent(logger, "john", "127.0.0.1");
-    assertHasEvent(logger, Level.ERROR, "Database");
-    assertHasEvent(logger, Level.WARN, "password");
-}
-```
-
-### Testing Exception Handling
-
-```java
-@Test
-void testExceptionAssertions() {
-    Logger logger = LoggerFactory.getLogger("test");
-    MockLogger mockLogger = (MockLogger) logger;
-    mockLogger.clearEvents();
-    mockLogger.setEnabled(true);
-    
-    logger.error("Database error", new SQLException("Connection timeout"));
-    logger.warn("Network issue", new IOException("Connection refused"));
-    
-    // Test specific throwable types and message parts
-    assertEventWithThrowable(logger, 0, SQLException.class, "Connection", "timeout");
-    assertEventWithThrowable(logger, 1, IOException.class, "refused");
-    
-    // Test existence of any throwable with specific properties
-    assertHasEventWithThrowable(logger, SQLException.class, "timeout");
-    assertHasEventWithThrowable(logger, IOException.class);
+    @Test
+    void shouldLogWorkflowSteps() {
+        logger.info("Process starting");
+        logger.debug("Step 1 completed");
+        logger.warn("Warning occurred");
+        logger.info("Process finished");
+        
+        // Verify exact sequence of levels
+        assertEventSequence(logger, Level.INFO, Level.DEBUG, Level.WARN, Level.INFO);
+        
+        // Verify sequence of message parts
+        assertEventSequence(logger, "starting", "Step 1", "Warning", "finished");
+    }
 }
 ```
 
 ### Counting Events
 
 ```java
-@Test
-void testEventCounting() {
-    Logger logger = LoggerFactory.getLogger("test");
-    MockLogger mockLogger = (MockLogger) logger;
-    mockLogger.clearEvents();
-    mockLogger.setEnabled(true);
-    Marker securityMarker = MarkerFactory.getMarker("SECURITY");
+@ExtendWith(MockLoggerExtension.class)
+class EventCountTest {
     
-    logger.info("Application started");
-    logger.warn(securityMarker, "Authentication failed");
-    logger.info("Processing request");
-    logger.error("Critical error occurred");
+    @Slf4jMock
+    Logger logger;
     
-    // Count total events
-    assertEventCount(logger, 4);
-    
-    // Count by level
-    assertEventCountByLevel(logger, Level.INFO, 2);
-    
-    // Count by marker
-    assertEventCountByMarker(logger, securityMarker, 1);
-    
-    // Count by message content
-    assertEventCountByMessage(logger, "error", 1); // Case sensitive
+    @Test
+    void shouldCountEvents() {
+        Marker securityMarker = MarkerFactory.getMarker("SECURITY");
+        
+        logger.info("Application started");
+        logger.warn(securityMarker, "Authentication failed");
+        logger.info("Processing request");
+        logger.error("Critical error occurred");
+        
+        // Count total events
+        assertEventCount(logger, 4);
+        
+        // Count by level
+        assertEventCountByLevel(logger, Level.INFO, 2);
+        assertEventCountByLevel(logger, Level.ERROR, 1);
+        
+        // Count by marker
+        assertEventCountByMarker(logger, securityMarker, 1);
+        
+        // Count by message content
+        assertEventCountByMessage(logger, "error", 1);
+    }
 }
 ```
 
-### Validating Event Sequences
+### Using Existence-Based Assertions
 
-```java
-@Test
-void testEventSequences() {
-    Logger logger = LoggerFactory.getLogger("test");
-    MockLogger mockLogger = (MockLogger) logger;
-    mockLogger.clearEvents();
-    mockLogger.setEnabled(true);
-    Marker startMarker = MarkerFactory.getMarker("START");
-    Marker endMarker = MarkerFactory.getMarker("END");
-    
-    logger.info(startMarker, "Process starting");
-    logger.debug("Step 1 completed");
-    logger.warn("Warning occurred");
-    logger.info(endMarker, "Process finished");
-    
-    // Verify exact sequence of levels
-    assertEventSequence(logger, Level.INFO, Level.DEBUG, Level.WARN, Level.INFO);
-    
-    // Verify sequence of markers (null for events without markers)
-    assertEventSequence(logger, startMarker, null, null, endMarker);
-    
-    // Verify sequence of message parts
-    assertEventSequence(logger, "starting", "Step 1", "Warning", "finished");
-}
-```
-
-## Integration with Test Frameworks
-
-### JUnit 5
+When event order doesn't matter, use existence-based assertions:
 
 ```java
 @ExtendWith(MockLoggerExtension.class)
-class MyServiceTest {
+class ExistenceAssertionTest {
     
-    private MockLogger logger;
-    
-    @BeforeEach
-    void setUp() {
-        logger = (MockLogger) LoggerFactory.getLogger(MyService.class);
-        logger.clearEvents(); // Start each test clean
-    }
+    @Slf4jMock
+    Logger logger;
     
     @Test
-    void testServiceOperation() {
-        MyService service = new MyService();
-        service.performOperation();
+    void shouldContainExpectedEvents() {
+        logger.info("User alice logged in from 127.0.0.1");
+        logger.warn("Invalid password attempt");
+        logger.error("Database connection failed");
         
-        assertEvent(logger, 0, Level.INFO, "Operation started");
-        assertEvent(logger, 1, Level.INFO, "Operation completed");
+        // Check if any event contains specific text parts (order doesn't matter)
+        assertHasEvent(logger, "alice", "127.0.0.1");
+        assertHasEvent(logger, Level.ERROR, "Database");
+        assertHasEvent(logger, Level.WARN, "password");
     }
 }
 ```
-
-### Testing Configuration
-
-Since this is a test-scoped dependency, ensure your test classpath includes the mock implementation:
-
-1. Add the dependency to your `pom.xml` with `<scope>test</scope>`
-2. SLF4J will automatically discover and use the mock implementation during tests
-3. Your production code will use the real logging implementation
 
 ## Best Practices
 
-### 1. Use AssertLogger for Cleaner Tests
+### 1. Use JUnit 5 Extension for Convenience
 
 ```java
-// Good - Uses AssertLogger for cleaner code
-assertEvent(logger, 0, Level.INFO, "User", "logged in");
-
-// Less preferred - Manual casting and assertion
-MockLogger mockLogger = (MockLogger) logger;
-MockLoggerEvent event = mockLogger.getEvent(0);
-assertEquals(Level.INFO, event.getLevel());
-assertTrue(event.getFormattedMessage().contains("User"));
-assertTrue(event.getFormattedMessage().contains("logged in"));
-```
-
-### 2. Clear Events Between Test Methods
-
-```java
-@BeforeEach
-void setUp() {
-    MockLogger mockLogger = (MockLogger) LoggerFactory.getLogger("test");
-    mockLogger.clearEvents();
+// Recommended - automatic logger management
+@ExtendWith(MockLoggerExtension.class)
+class MyTest {
+    @Slf4jMock Logger logger;
+    // No setup or cleanup needed!
 }
 ```
 
-### 3. Use Descriptive Assertion Messages
-
-The AssertLogger methods include descriptive error messages automatically:
-
-```java
-// This will provide clear error messages if assertions fail
-assertEvent(logger, 0, Level.ERROR, "Expected", "error", "message");
-```
-
-### 4. Test Different Log Levels
-
-```java
-@Test
-void testDifferentLogLevels() {
-    Logger logger = LoggerFactory.getLogger("test");
-    MockLogger mockLogger = (MockLogger) logger;
-    mockLogger.clearEvents();
-    mockLogger.setEnabled(true);
-    
-    logger.trace("Trace message");
-    logger.debug("Debug message");
-    
-    assertEvent(logger, 0, Level.TRACE, "Trace");
-    assertEvent(logger, 1, Level.DEBUG, "Debug");
-}
-```
-
-### 5. Choose the Right Assertion Type
+### 2. Choose the Right Assertion Type
 
 **Use index-based assertions** when order matters:
 ```java
-// When testing specific sequence of events
 assertEvent(logger, 0, Level.INFO, "Starting");
 assertEvent(logger, 1, Level.INFO, "Completed");
 ```
 
 **Use existence-based assertions** when order doesn't matter:
 ```java
-// When testing that events occurred, regardless of order
 assertHasEvent(logger, Level.ERROR, "Database", "failed");
-assertHasEvent(logger, "authentication");
 ```
 
 **Use counting assertions** for volume verification:
 ```java
-// When testing logging frequency or filtering
 assertEventCount(logger, 5);
 assertEventCountByLevel(logger, Level.ERROR, 0); // No errors expected
 ```
 
 **Use sequence assertions** for workflow validation:
 ```java
-// When testing state machine transitions or process flows
 assertEventSequence(logger, Level.INFO, Level.DEBUG, Level.WARN, Level.INFO);
 ```
 
-### 6. Test Exception Logging Properly
+### 3. Test Both Messages and Exceptions
 
 ```java
-@Test
-void testExceptionHandling() {
-    // Test both the message and the exception
-    logger.error("Operation failed", new SQLException("Connection timeout"));
-    
-    assertEvent(logger, 0, Level.ERROR, "Operation failed");
-    assertEventWithThrowable(logger, 0, SQLException.class, "Connection", "timeout");
-}
+logger.error("Operation failed", new SQLException("Connection timeout"));
+
+assertEvent(logger, 0, Level.ERROR, "Operation failed");
+assertEventWithThrowable(logger, 0, SQLException.class, "Connection", "timeout");
 ```
 
 ## Thread Safety
 
-This mock implementation is designed for single-threaded test environments. If you need to test multi-threaded logging scenarios, ensure proper synchronization in your test code.
-You may run test in parallel as long as each test uses its own logger name.
-For example, use unique logger names per test class or method.
+This mock implementation is designed for single-threaded test environments. For parallel test execution, use unique logger names per test class or method.
 
 ## Requirements
 
 - Java 8 or higher
-- SLF4J API 1.7.x or 2.0.x (tested with 1.7.36 and 2.0.16)
-- JUnit 5 (for assertion utilities)
-- Lombok (build-time dependency for code generation)
+- SLF4J API 1.7.x or 2.0.x
+- JUnit 5 (for JUnit extension and assertion utilities)
 
-## Technical Implementation
+## Documentation
 
-### SLF4J Version Support
+For more detailed information about the implementation and advanced topics:
 
-This library uses different service provider mechanisms depending on the SLF4J version:
-
-**SLF4J 1.7.x:**
-- Uses Static Binder pattern (`StaticLoggerBinder`, `StaticMarkerBinder`, `StaticMDCBinder`)
-- Compatible with all SLF4J 1.7.x releases
-- Implements core MDC functionality
-
-**SLF4J 2.0.x:**
-- Uses Service Provider Interface (`MockServiceProvider` implementing `SLF4JServiceProvider`)
-- Registered via `META-INF/services/org.slf4j.spi.SLF4JServiceProvider`
-- Supports enhanced MDC features including Deque methods (`pushByKey`, `popByKey`, `getCopyOfDequeByKey`, `clearDequeByKey`)
-
-The correct implementation is automatically selected at runtime based on your SLF4J classpath. No configuration needed!
-
-For detailed information about the multi-version support strategy, see:
-- [TDR-0005: Multiple SLF4J Version Support](TDR-0005-multiple-slf4j-version-support.md)
-- [BUILD-PROFILES.md](BUILD-PROFILES.md) - For building from source
+- **[Mock Logger Implementation Guide](doc/mock-logger-implementation.md)** - Internal architecture, data structures, and design decisions
+- **[SLF4J API Integration Guide](doc/slf4j-api-integration.md)** - How the library integrates with SLF4J 1.7.x and 2.0.x
+- **[TDR-0001: In-Memory Event Storage](doc/TDR-0001-in-memory-event-storage.md)** - Why ArrayList for event storage
+- **[TDR-0002: Use of JUnit5 Assertions](doc/TDR-0002-use-of-junit5-assertions.md)** - Why JUnit Jupiter assertions
+- **[TDR-0003: Focus on SLF4J Facade](doc/TDR-0003-focus-on-slf4j-facade.md)** - Design philosophy
+- **[TDR-0004: JUnit Extension for Debug Logging](doc/TDR-0004-junit-extension-for-debug-logging.md)** - Debug output on test failures
+- **[TDR-0005: Multiple SLF4J Version Support](doc/TDR-0005-multiple-slf4j-version-support.md)** - Dual version compatibility strategy
+- **[BUILD-PROFILES.md](BUILD-PROFILES.md)** - Maven build profiles and how to build from source
 
 ## FAQ
 
 ### How do I know which SLF4J version I'm using?
 
-Check your project's dependencies. If you see `slf4j-api` version 1.7.x, you're using SLF4J 1.7. If it's 2.0.x or higher, you're using SLF4J 2.0.
+Check your project's dependencies:
 
 ```bash
 # Maven
@@ -569,49 +519,22 @@ mvn dependency:tree | findstr slf4j-api
 gradle dependencies | grep slf4j-api
 ```
 
-### Do I need to do anything special for SLF4J 2.0?
+### Do I need special configuration for SLF4J 2.0?
 
-No! The library automatically detects and works with SLF4J 2.0. Just add it to your test dependencies as usual.
+No! The library automatically detects and works with both SLF4J 1.7.x and 2.0.x. Just add it to your test dependencies.
 
-### Can I use this library to migrate from SLF4J 1.7 to 2.0?
+### Can I use this during SLF4J migration?
 
-Yes! Since this library supports both versions, your tests will continue to work during the migration. This makes it safe to upgrade your SLF4J version without changing your test code.
+Yes! Since this library supports both versions, your tests will continue to work when migrating from SLF4J 1.7 to 2.0.
 
-### What are the differences between SLF4J 1.7 and 2.0 in this library?
+### How does the dual-version support work?
 
-From a user perspective, there are minimal differences:
-- Both versions support all core logging and assertion features
-- SLF4J 2.0 includes additional MDC Deque methods (`pushByKey`, `popByKey`, etc.)
-- The service provider mechanism differs internally, but this is transparent to users
+The library uses different integration mechanisms based on the SLF4J version on your classpath:
+- **SLF4J 1.7.x**: Static Binder pattern
+- **SLF4J 2.0.x**: Service Provider Interface
 
-### Does this work with SLF4J 1.8 or other versions?
-
-SLF4J jumped from 1.7.x directly to 2.0.x. There is no 1.8 version. This library is tested with:
-- Latest SLF4J 1.7.x (1.7.36)
-- Latest SLF4J 2.0.x (2.0.16)
-
-It should work with any 1.7.x or 2.0.x release.
+For technical details, see the [SLF4J API Integration Guide](doc/slf4j-api-integration.md).
 
 ## License
 
 Licensed under the Apache License, Version 2.0. See the [LICENSE](../LICENSE) file for details.
-
-## Contributing
-
-This library follows structured guidelines for code style and development practices.
-
-### AI Instructions
-
-The project provides instructions for AI assistants to maintain consistency:
-
-- **[AI-INSTRUCTIONS.md](AI-INSTRUCTIONS.md)** - Shared instructions for all AI assistants (Gemini, Copilot, etc.)
-- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - GitHub Copilot-specific instructions (official location)
-- **[GEMINI.md](GEMINI.md)** - Google Gemini-specific instructions
-
-Key guidelines include:
-- Use Java 8
-- Always use Maven wrapper (`mvnw.cmd` on Windows, `./mvnw` on Unix)
-- Prefer Lombok annotations to reduce boilerplate
-- Maintain >95% test coverage with JUnit 5
-- Use `@DisplayName` for descriptive test names
-- Document all classes and members with Javadoc
