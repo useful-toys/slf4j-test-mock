@@ -164,65 +164,235 @@ class AssertLoggerTest {
         private class TestLogger implements Logger {
             @Override public String getName() { return "test"; }
             @Override public boolean isTraceEnabled() { return false; }
-            @Override public void trace(String msg) {}
-            @Override public void trace(String format, Object arg) {}
-            @Override public void trace(String format, Object arg1, Object arg2) {}
-            @Override public void trace(String format, Object... arguments) {}
-            @Override public void trace(String msg, Throwable t) {}
-            @Override public boolean isTraceEnabled(Marker marker) { return false; }
-            @Override public void trace(Marker marker, String msg) {}
-            @Override public void trace(Marker marker, String format, Object arg) {}
-            @Override public void trace(Marker marker, String format, Object arg1, Object arg2) {}
-            @Override public void trace(Marker marker, String format, Object... argArray) {}
-            @Override public void trace(Marker marker, String msg, Throwable t) {}
+
+            @Override
+            public void trace(final String msg) {
+            }
+
+            @Override
+            public void trace(final String format, final Object arg) {
+            }
+
+            @Override
+            public void trace(final String format, final Object arg1, final Object arg2) {
+            }
+
+            @Override
+            public void trace(final String format, final Object... arguments) {
+            }
+
+            @Override
+            public void trace(final String msg, final Throwable t) {
+            }
+
+            @Override
+            public boolean isTraceEnabled(final Marker marker) {
+                return false;
+            }
+
+            @Override
+            public void trace(final Marker marker, final String msg) {
+            }
+
+            @Override
+            public void trace(final Marker marker, final String format, final Object arg) {
+            }
+
+            @Override
+            public void trace(final Marker marker, final String format, final Object arg1, final Object arg2) {
+            }
+
+            @Override
+            public void trace(final Marker marker, final String format, final Object... argArray) {
+            }
+
+            @Override
+            public void trace(final Marker marker, final String msg, final Throwable t) {
+            }
             @Override public boolean isDebugEnabled() { return false; }
-            @Override public void debug(String msg) {}
-            @Override public void debug(String format, Object arg) {}
-            @Override public void debug(String format, Object arg1, Object arg2) {}
-            @Override public void debug(String format, Object... arguments) {}
-            @Override public void debug(String msg, Throwable t) {}
-            @Override public boolean isDebugEnabled(Marker marker) { return false; }
-            @Override public void debug(Marker marker, String msg) {}
-            @Override public void debug(Marker marker, String format, Object arg) {}
-            @Override public void debug(Marker marker, String format, Object arg1, Object arg2) {}
-            @Override public void debug(Marker marker, String format, Object... argArray) {}
-            @Override public void debug(Marker marker, String msg, Throwable t) {}
+
+            @Override
+            public void debug(final String msg) {
+            }
+
+            @Override
+            public void debug(final String format, final Object arg) {
+            }
+
+            @Override
+            public void debug(final String format, final Object arg1, final Object arg2) {
+            }
+
+            @Override
+            public void debug(final String format, final Object... arguments) {
+            }
+
+            @Override
+            public void debug(final String msg, final Throwable t) {
+            }
+
+            @Override
+            public boolean isDebugEnabled(final Marker marker) {
+                return false;
+            }
+
+            @Override
+            public void debug(final Marker marker, final String msg) {
+            }
+
+            @Override
+            public void debug(final Marker marker, final String format, final Object arg) {
+            }
+
+            @Override
+            public void debug(final Marker marker, final String format, final Object arg1, final Object arg2) {
+            }
+
+            @Override
+            public void debug(final Marker marker, final String format, final Object... argArray) {
+            }
+
+            @Override
+            public void debug(final Marker marker, final String msg, final Throwable t) {
+            }
             @Override public boolean isInfoEnabled() { return false; }
-            @Override public void info(String msg) {}
-            @Override public void info(String format, Object arg) {}
-            @Override public void info(String format, Object arg1, Object arg2) {}
-            @Override public void info(String format, Object... arguments) {}
-            @Override public void info(String msg, Throwable t) {}
-            @Override public boolean isInfoEnabled(Marker marker) { return false; }
-            @Override public void info(Marker marker, String msg) {}
-            @Override public void info(Marker marker, String format, Object arg) {}
-            @Override public void info(Marker marker, String format, Object arg1, Object arg2) {}
-            @Override public void info(Marker marker, String format, Object... argArray) {}
-            @Override public void info(Marker marker, String msg, Throwable t) {}
+
+            @Override
+            public void info(final String msg) {
+            }
+
+            @Override
+            public void info(final String format, final Object arg) {
+            }
+
+            @Override
+            public void info(final String format, final Object arg1, final Object arg2) {
+            }
+
+            @Override
+            public void info(final String format, final Object... arguments) {
+            }
+
+            @Override
+            public void info(final String msg, final Throwable t) {
+            }
+
+            @Override
+            public boolean isInfoEnabled(final Marker marker) {
+                return false;
+            }
+
+            @Override
+            public void info(final Marker marker, final String msg) {
+            }
+
+            @Override
+            public void info(final Marker marker, final String format, final Object arg) {
+            }
+
+            @Override
+            public void info(final Marker marker, final String format, final Object arg1, final Object arg2) {
+            }
+
+            @Override
+            public void info(final Marker marker, final String format, final Object... argArray) {
+            }
+
+            @Override
+            public void info(final Marker marker, final String msg, final Throwable t) {
+            }
             @Override public boolean isWarnEnabled() { return false; }
-            @Override public void warn(String msg) {}
-            @Override public void warn(String format, Object arg) {}
-            @Override public void warn(String format, Object... arguments) {}
-            @Override public void warn(String format, Object arg1, Object arg2) {}
-            @Override public void warn(String msg, Throwable t) {}
-            @Override public boolean isWarnEnabled(Marker marker) { return false; }
-            @Override public void warn(Marker marker, String msg) {}
-            @Override public void warn(Marker marker, String format, Object arg) {}
-            @Override public void warn(Marker marker, String format, Object arg1, Object arg2) {}
-            @Override public void warn(Marker marker, String format, Object... argArray) {}
-            @Override public void warn(Marker marker, String msg, Throwable t) {}
+
+            @Override
+            public void warn(final String msg) {
+            }
+
+            @Override
+            public void warn(final String format, final Object arg) {
+            }
+
+            @Override
+            public void warn(final String format, final Object... arguments) {
+            }
+
+            @Override
+            public void warn(final String format, final Object arg1, final Object arg2) {
+            }
+
+            @Override
+            public void warn(final String msg, final Throwable t) {
+            }
+
+            @Override
+            public boolean isWarnEnabled(final Marker marker) {
+                return false;
+            }
+
+            @Override
+            public void warn(final Marker marker, final String msg) {
+            }
+
+            @Override
+            public void warn(final Marker marker, final String format, final Object arg) {
+            }
+
+            @Override
+            public void warn(final Marker marker, final String format, final Object arg1, final Object arg2) {
+            }
+
+            @Override
+            public void warn(final Marker marker, final String format, final Object... argArray) {
+            }
+
+            @Override
+            public void warn(final Marker marker, final String msg, final Throwable t) {
+            }
             @Override public boolean isErrorEnabled() { return false; }
-            @Override public void error(String msg) {}
-            @Override public void error(String format, Object arg) {}
-            @Override public void error(String format, Object arg1, Object arg2) {}
-            @Override public void error(String format, Object... arguments) {}
-            @Override public void error(String msg, Throwable t) {}
-            @Override public boolean isErrorEnabled(Marker marker) { return false; }
-            @Override public void error(Marker marker, String msg) {}
-            @Override public void error(Marker marker, String format, Object arg) {}
-            @Override public void error(Marker marker, String format, Object arg1, Object arg2) {}
-            @Override public void error(Marker marker, String format, Object... argArray) {}
-            @Override public void error(Marker marker, String msg, Throwable t) {}
+
+            @Override
+            public void error(final String msg) {
+            }
+
+            @Override
+            public void error(final String format, final Object arg) {
+            }
+
+            @Override
+            public void error(final String format, final Object arg1, final Object arg2) {
+            }
+
+            @Override
+            public void error(final String format, final Object... arguments) {
+            }
+
+            @Override
+            public void error(final String msg, final Throwable t) {
+            }
+
+            @Override
+            public boolean isErrorEnabled(final Marker marker) {
+                return false;
+            }
+
+            @Override
+            public void error(final Marker marker, final String msg) {
+            }
+
+            @Override
+            public void error(final Marker marker, final String format, final Object arg) {
+            }
+
+            @Override
+            public void error(final Marker marker, final String format, final Object arg1, final Object arg2) {
+            }
+
+            @Override
+            public void error(final Marker marker, final String format, final Object... argArray) {
+            }
+
+            @Override
+            public void error(final Marker marker, final String msg, final Throwable t) {
+            }
         }
     }
 

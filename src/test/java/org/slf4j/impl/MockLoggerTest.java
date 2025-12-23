@@ -25,7 +25,14 @@ import org.slf4j.impl.MockLoggerEvent.Level;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for {@link MockLogger}.
@@ -60,7 +67,7 @@ class MockLoggerTest {
         assertTrue(logger.isErrorEnabled());
         
         // Test with marker
-        Marker marker = MarkerFactory.getMarker("TEST");
+        final Marker marker = MarkerFactory.getMarker("TEST");
         assertTrue(logger.isTraceEnabled(marker));
         assertTrue(logger.isDebugEnabled(marker));
         assertTrue(logger.isInfoEnabled(marker));
@@ -123,7 +130,7 @@ class MockLoggerTest {
     @DisplayName("Should log TRACE messages with marker")
     void shouldLogTraceMessagesWithMarker() {
         // Given
-        Marker marker = MarkerFactory.getMarker("TRACE_MARKER");
+        final Marker marker = MarkerFactory.getMarker("TRACE_MARKER");
         
         // When
         logger.trace(marker, "Simple trace with marker");
@@ -230,7 +237,7 @@ class MockLoggerTest {
         logger.info("Test message");
         
         // When
-        List<MockLoggerEvent> events = logger.getLoggerEvents();
+        final List<MockLoggerEvent> events = logger.getLoggerEvents();
         
         // Then
         assertThrows(UnsupportedOperationException.class, () -> events.add(null));
@@ -264,7 +271,7 @@ class MockLoggerTest {
     @DisplayName("Should assert event with marker")
     void shouldAssertEventWithMarker() {
         // Given
-        Marker marker = MarkerFactory.getMarker("TEST_MARKER");
+        final Marker marker = MarkerFactory.getMarker("TEST_MARKER");
         logger.info(marker, "Test message with marker");
         
         // When/Then
@@ -277,7 +284,7 @@ class MockLoggerTest {
     @DisplayName("Should assert event with level and marker")
     void shouldAssertEventWithLevelAndMarker() {
         // Given
-        Marker marker = MarkerFactory.getMarker("ERROR_MARKER");
+        final Marker marker = MarkerFactory.getMarker("ERROR_MARKER");
         logger.error(marker, "Error with marker");
         
         // When/Then
@@ -293,7 +300,7 @@ class MockLoggerTest {
         logger.error("Third message");
         
         // When
-        String text = logger.toText();
+        final String text = logger.toText();
         
         // Then
         assertNotNull(text);
@@ -407,7 +414,7 @@ class MockLoggerTest {
         assertEquals(debugMarker, event3.getMarker());
         assertEquals("Debug marker with exception", event3.getMessage());
         assertNotNull(event3.getThrowable());
-        assertEquals(IllegalArgumentException.class, event3.getThrowable().getClass());
+        assertSame(IllegalArgumentException.class, event3.getThrowable().getClass());
         assertEquals("test exception", event3.getThrowable().getMessage());
     }
 
@@ -434,7 +441,7 @@ class MockLoggerTest {
         assertEquals(infoMarker, event1.getMarker());
         assertEquals("Info marker with exception", event1.getMessage());
         assertNotNull(event1.getThrowable());
-        assertEquals(NullPointerException.class, event1.getThrowable().getClass());
+        assertSame(NullPointerException.class, event1.getThrowable().getClass());
         assertEquals("null value", event1.getThrowable().getMessage());
     }
 
@@ -473,7 +480,7 @@ class MockLoggerTest {
         assertEquals(warnMarker, event3.getMarker());
         assertEquals("Warn marker with exception", event3.getMessage());
         assertNotNull(event3.getThrowable());
-        assertEquals(RuntimeException.class, event3.getThrowable().getClass());
+        assertSame(RuntimeException.class, event3.getThrowable().getClass());
         assertEquals("runtime error", event3.getThrowable().getMessage());
     }
 
@@ -512,7 +519,7 @@ class MockLoggerTest {
         assertEquals(errorMarker, event3.getMarker());
         assertEquals("Error marker with exception", event3.getMessage());
         assertNotNull(event3.getThrowable());
-        assertEquals(Exception.class, event3.getThrowable().getClass());
+        assertSame(Exception.class, event3.getThrowable().getClass());
         assertEquals("system error", event3.getThrowable().getMessage());
     }
 
@@ -680,7 +687,7 @@ class MockLoggerTest {
     void shouldNotRecordEventsWithMarkersWhenLevelDisabled() {
         // Given
         logger.setInfoEnabled(false);
-        Marker marker = MarkerFactory.getMarker("TEST");
+        final Marker marker = MarkerFactory.getMarker("TEST");
         
         // When
         logger.info(marker, "This should not be recorded");
@@ -696,7 +703,7 @@ class MockLoggerTest {
     void shouldNotRecordEventsWithThrowablesWhenLevelDisabled() {
         // Given
         logger.setErrorEnabled(false);
-        Exception ex = new RuntimeException("Test exception");
+        final Exception ex = new RuntimeException("Test exception");
         
         // When
         logger.error("This should not be recorded", ex);

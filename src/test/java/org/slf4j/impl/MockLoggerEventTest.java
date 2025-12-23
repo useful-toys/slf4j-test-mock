@@ -24,7 +24,12 @@ import org.slf4j.impl.MockLoggerEvent.Level;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for {@link MockLoggerEvent}.
@@ -38,12 +43,12 @@ class MockLoggerEventTest {
     @DisplayName("Should create event with basic parameters")
     void shouldCreateEventWithBasicParameters() {
         // Given
-        String loggerName = "test.logger";
-        Level level = Level.INFO;
-        String message = "Test message";
+        final String loggerName = "test.logger";
+        final Level level = Level.INFO;
+        final String message = "Test message";
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message);
+        final MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message);
 
         // Then
         assertEquals(loggerName, event.getLoggerName());
@@ -63,18 +68,18 @@ class MockLoggerEventTest {
     @DisplayName("Should create event with all parameters")
     void shouldCreateEventWithAllParameters() {
         // Given
-        String loggerName = "test.logger";
-        Level level = Level.ERROR;
-        Map<String, String> mdc = new HashMap<>();
+        final String loggerName = "test.logger";
+        final Level level = Level.ERROR;
+        final Map<String, String> mdc = new HashMap<>();
         mdc.put("userId", "123");
         mdc.put("sessionId", "abc");
-        Marker marker = MarkerFactory.getMarker("TEST_MARKER");
-        Throwable throwable = new RuntimeException("Test exception");
-        String message = "Error occurred: {}";
-        Object[] arguments = {"argument1"};
+        final Marker marker = MarkerFactory.getMarker("TEST_MARKER");
+        final Throwable throwable = new RuntimeException("Test exception");
+        final String message = "Error occurred: {}";
+        final Object[] arguments = {"argument1"};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, mdc, marker, throwable, message, arguments);
+        final MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, mdc, marker, throwable, message, arguments);
 
         // Then
         assertEquals(loggerName, event.getLoggerName());
@@ -90,14 +95,14 @@ class MockLoggerEventTest {
     @DisplayName("Should extract throwable from last argument when no explicit throwable")
     void shouldExtractThrowableFromLastArgument() {
         // Given
-        String loggerName = "test.logger";
-        Level level = Level.WARN;
-        String message = "Warning with exception: {} {}";
-        RuntimeException exception = new RuntimeException("Test exception");
-        Object[] arguments = {"arg1", "arg2", exception};
+        final String loggerName = "test.logger";
+        final Level level = Level.WARN;
+        final String message = "Warning with exception: {} {}";
+        final RuntimeException exception = new RuntimeException("Test exception");
+        final Object[] arguments = {"arg1", "arg2", exception};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
+        final MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
 
         // Then
         assertEquals(exception, event.getThrowable());
@@ -110,15 +115,15 @@ class MockLoggerEventTest {
     @DisplayName("Should not extract throwable when already provided explicitly")
     void shouldNotExtractThrowableWhenExplicitlyProvided() {
         // Given
-        String loggerName = "test.logger";
-        Level level = Level.ERROR;
-        String message = "Error message";
-        RuntimeException explicitException = new RuntimeException("Explicit exception");
-        RuntimeException argumentException = new RuntimeException("Argument exception");
-        Object[] arguments = {"arg1", argumentException};
+        final String loggerName = "test.logger";
+        final Level level = Level.ERROR;
+        final String message = "Error message";
+        final RuntimeException explicitException = new RuntimeException("Explicit exception");
+        final RuntimeException argumentException = new RuntimeException("Argument exception");
+        final Object[] arguments = {"arg1", argumentException};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, explicitException, message, arguments);
+        final MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, explicitException, message, arguments);
 
         // Then
         assertEquals(explicitException, event.getThrowable());
@@ -131,14 +136,14 @@ class MockLoggerEventTest {
     @DisplayName("Should not extract throwable from single argument")
     void shouldNotExtractThrowableFromSingleArgument() {
         // Given
-        String loggerName = "test.logger";
-        Level level = Level.DEBUG;
-        String message = "Debug message: {}";
-        RuntimeException exception = new RuntimeException("Test exception");
-        Object[] arguments = {exception};
+        final String loggerName = "test.logger";
+        final Level level = Level.DEBUG;
+        final String message = "Debug message: {}";
+        final RuntimeException exception = new RuntimeException("Test exception");
+        final Object[] arguments = {exception};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
+        final MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
 
         // Then
         assertNull(event.getThrowable());
@@ -150,13 +155,13 @@ class MockLoggerEventTest {
     @DisplayName("Should format message correctly with arguments")
     void shouldFormatMessageCorrectlyWithArguments() {
         // Given
-        String loggerName = "test.logger";
-        Level level = Level.INFO;
-        String message = "User {} logged in from IP {}";
-        Object[] arguments = {"john.doe", "192.168.1.1"};
+        final String loggerName = "test.logger";
+        final Level level = Level.INFO;
+        final String message = "User {} logged in from IP {}";
+        final Object[] arguments = {"john.doe", "192.168.1.1"};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
+        final MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
 
         // Then
         assertEquals("User john.doe logged in from IP 192.168.1.1", event.getFormattedMessage());
@@ -166,12 +171,12 @@ class MockLoggerEventTest {
     @DisplayName("Should format message without arguments")
     void shouldFormatMessageWithoutArguments() {
         // Given
-        String loggerName = "test.logger";
-        Level level = Level.TRACE;
-        String message = "Simple trace message";
+        final String loggerName = "test.logger";
+        final Level level = Level.TRACE;
+        final String message = "Simple trace message";
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message);
+        final MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message);
 
         // Then
         assertEquals("Simple trace message", event.getFormattedMessage());
@@ -181,13 +186,13 @@ class MockLoggerEventTest {
     @DisplayName("Should handle null arguments in formatting")
     void shouldHandleNullArgumentsInFormatting() {
         // Given
-        String loggerName = "test.logger";
-        Level level = Level.WARN;
-        String message = "Value is {}";
-        Object[] arguments = {null};
+        final String loggerName = "test.logger";
+        final Level level = Level.WARN;
+        final String message = "Value is {}";
+        final Object[] arguments = {null};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
+        final MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
 
         // Then
         assertEquals("Value is null", event.getFormattedMessage());
@@ -197,15 +202,15 @@ class MockLoggerEventTest {
     @DisplayName("Should generate toString with all fields")
     void shouldGenerateToStringWithAllFields() {
         // Given
-        String loggerName = "test.logger";
-        Level level = Level.ERROR;
-        Marker marker = MarkerFactory.getMarker("ERROR_MARKER");
-        String message = "Test message";
-        Object[] arguments = {"arg1"};
+        final String loggerName = "test.logger";
+        final Level level = Level.ERROR;
+        final Marker marker = MarkerFactory.getMarker("ERROR_MARKER");
+        final String message = "Test message";
+        final Object[] arguments = {"arg1"};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, marker, null, message, arguments);
-        String toStringResult = event.toString();
+        final MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, marker, null, message, arguments);
+        final String toStringResult = event.toString();
         
         // Then
         assertNotNull(toStringResult);
@@ -218,7 +223,7 @@ class MockLoggerEventTest {
     @Test
     @DisplayName("Should test all log levels")
     void shouldTestAllLogLevels() {
-        Level[] levels = Level.values();
+        final Level[] levels = Level.values();
         
         assertEquals(5, levels.length);
         assertEquals(Level.ERROR, levels[0]);
@@ -232,13 +237,13 @@ class MockLoggerEventTest {
     @DisplayName("Should handle complex formatting scenarios")
     void shouldHandleComplexFormattingScenarios() {
         // Given
-        String loggerName = "complex.logger";
-        Level level = Level.INFO;
-        String message = "Processing {} items: {} successful, {} failed";
-        Object[] arguments = {100, 95, 5};
+        final String loggerName = "complex.logger";
+        final Level level = Level.INFO;
+        final String message = "Processing {} items: {} successful, {} failed";
+        final Object[] arguments = {100, 95, 5};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
+        final MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, arguments);
 
         // Then
         assertEquals("Processing 100 items: 95 successful, 5 failed", event.getFormattedMessage());
@@ -248,13 +253,13 @@ class MockLoggerEventTest {
     @DisplayName("Should preserve original arguments array reference")
     void shouldPreserveOriginalArgumentsArrayReference() {
         // Given
-        String loggerName = "test.logger";
-        Level level = Level.DEBUG;
-        String message = "Test message";
-        Object[] originalArguments = {"arg1", "arg2"};
+        final String loggerName = "test.logger";
+        final Level level = Level.DEBUG;
+        final String message = "Test message";
+        final Object[] originalArguments = {"arg1", "arg2"};
         
         // When
-        MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, originalArguments);
+        final MockLoggerEvent event = new MockLoggerEvent(0, loggerName, level, null, null, null, message, originalArguments);
 
         // Then
         assertSame(originalArguments, event.getArguments());

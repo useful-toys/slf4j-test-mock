@@ -15,12 +15,17 @@
  */
 package org.slf4j.impl;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * Unit tests for {@link MockLoggerFactory}.
@@ -34,8 +39,8 @@ class MockLoggerFactoryTest {
     @DisplayName("Should return singleton instance")
     void shouldReturnSingletonInstance() {
         // When
-        ILoggerFactory instance1 = MockLoggerFactory.getInstance();
-        ILoggerFactory instance2 = MockLoggerFactory.getInstance();
+        final ILoggerFactory instance1 = MockLoggerFactory.getInstance();
+        final ILoggerFactory instance2 = MockLoggerFactory.getInstance();
         
         // Then
         assertNotNull(instance1);
@@ -48,15 +53,15 @@ class MockLoggerFactoryTest {
     @DisplayName("Should create logger with correct name")
     void shouldCreateLoggerWithCorrectName() {
         // Given
-        MockLoggerFactory factory = new MockLoggerFactory();
-        String loggerName = "test.logger.name";
+        final MockLoggerFactory factory = new MockLoggerFactory();
+        final String loggerName = "test.logger.name";
         
         // When
-        Logger logger = factory.getLogger(loggerName);
+        final Logger logger = factory.getLogger(loggerName);
         
         // Then
         assertNotNull(logger);
-        assertTrue(logger instanceof MockLogger);
+        assertInstanceOf(MockLogger.class, logger);
         assertEquals(loggerName, logger.getName());
     }
 
@@ -64,12 +69,12 @@ class MockLoggerFactoryTest {
     @DisplayName("Should return same logger instance for same name")
     void shouldReturnSameLoggerInstanceForSameName() {
         // Given
-        MockLoggerFactory factory = new MockLoggerFactory();
-        String loggerName = "same.logger.name";
+        final MockLoggerFactory factory = new MockLoggerFactory();
+        final String loggerName = "same.logger.name";
         
         // When
-        Logger logger1 = factory.getLogger(loggerName);
-        Logger logger2 = factory.getLogger(loggerName);
+        final Logger logger1 = factory.getLogger(loggerName);
+        final Logger logger2 = factory.getLogger(loggerName);
         
         // Then
         assertNotNull(logger1);
@@ -81,13 +86,13 @@ class MockLoggerFactoryTest {
     @DisplayName("Should create different logger instances for different names")
     void shouldCreateDifferentLoggerInstancesForDifferentNames() {
         // Given
-        MockLoggerFactory factory = new MockLoggerFactory();
-        String loggerName1 = "logger.one";
-        String loggerName2 = "logger.two";
+        final MockLoggerFactory factory = new MockLoggerFactory();
+        final String loggerName1 = "logger.one";
+        final String loggerName2 = "logger.two";
         
         // When
-        Logger logger1 = factory.getLogger(loggerName1);
-        Logger logger2 = factory.getLogger(loggerName2);
+        final Logger logger1 = factory.getLogger(loggerName1);
+        final Logger logger2 = factory.getLogger(loggerName2);
         
         // Then
         assertNotNull(logger1);
@@ -101,14 +106,14 @@ class MockLoggerFactoryTest {
     @DisplayName("Should handle null logger name gracefully")
     void shouldHandleNullLoggerNameGracefully() {
         // Given
-        MockLoggerFactory factory = new MockLoggerFactory();
+        final MockLoggerFactory factory = new MockLoggerFactory();
         
         // When
-        Logger logger = factory.getLogger(null);
+        final Logger logger = factory.getLogger(null);
         
         // Then
         assertNotNull(logger);
-        assertTrue(logger instanceof MockLogger);
+        assertInstanceOf(MockLogger.class, logger);
         assertNull(logger.getName());
     }
 
@@ -116,15 +121,15 @@ class MockLoggerFactoryTest {
     @DisplayName("Should handle empty logger name")
     void shouldHandleEmptyLoggerName() {
         // Given
-        MockLoggerFactory factory = new MockLoggerFactory();
-        String emptyName = "";
+        final MockLoggerFactory factory = new MockLoggerFactory();
+        final String emptyName = "";
         
         // When
-        Logger logger = factory.getLogger(emptyName);
+        final Logger logger = factory.getLogger(emptyName);
         
         // Then
         assertNotNull(logger);
-        assertTrue(logger instanceof MockLogger);
+        assertInstanceOf(MockLogger.class, logger);
         assertEquals(emptyName, logger.getName());
     }
 
@@ -132,15 +137,15 @@ class MockLoggerFactoryTest {
     @DisplayName("Should handle very long logger name")
     void shouldHandleVeryLongLoggerName() {
         // Given
-        MockLoggerFactory factory = new MockLoggerFactory();
-        StringBuilder sb = new StringBuilder();
+        final MockLoggerFactory factory = new MockLoggerFactory();
+        final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 1000; i++) {
             sb.append("a");
         }
-        String longName = sb.toString();
+        final String longName = sb.toString();
         
         // When
-        Logger logger = factory.getLogger(longName);
+        final Logger logger = factory.getLogger(longName);
         
         // Then
         assertNotNull(logger);
@@ -152,15 +157,15 @@ class MockLoggerFactoryTest {
     @DisplayName("Should handle logger names with special characters")
     void shouldHandleLoggerNamesWithSpecialCharacters() {
         // Given
-        MockLoggerFactory factory = new MockLoggerFactory();
-        String specialName = "logger.with-special_chars.123!@#$%";
+        final MockLoggerFactory factory = new MockLoggerFactory();
+        final String specialName = "logger.with-special_chars.123!@#$%";
         
         // When
-        Logger logger = factory.getLogger(specialName);
+        final Logger logger = factory.getLogger(specialName);
         
         // Then
         assertNotNull(logger);
-        assertTrue(logger instanceof MockLogger);
+        assertInstanceOf(MockLogger.class, logger);
         assertEquals(specialName, logger.getName());
     }
 
@@ -168,13 +173,13 @@ class MockLoggerFactoryTest {
     @DisplayName("Should maintain logger cache across multiple calls")
     void shouldMaintainLoggerCacheAcrossMultipleCalls() {
         // Given
-        MockLoggerFactory factory = new MockLoggerFactory();
-        String[] loggerNames = {
+        final MockLoggerFactory factory = new MockLoggerFactory();
+        final String[] loggerNames = {
             "logger.a", "logger.b", "logger.c", "logger.a", "logger.b"
         };
         
         // When
-        Logger[] loggers = new Logger[loggerNames.length];
+        final Logger[] loggers = new Logger[loggerNames.length];
         for (int i = 0; i < loggerNames.length; i++) {
             loggers[i] = factory.getLogger(loggerNames[i]);
         }
@@ -190,15 +195,15 @@ class MockLoggerFactoryTest {
     @DisplayName("Should work with hierarchical logger names")
     void shouldWorkWithHierarchicalLoggerNames() {
         // Given
-        MockLoggerFactory factory = new MockLoggerFactory();
-        String parentLogger = "com.example";
-        String childLogger = "com.example.service";
-        String grandchildLogger = "com.example.service.impl";
+        final MockLoggerFactory factory = new MockLoggerFactory();
+        final String parentLogger = "com.example";
+        final String childLogger = "com.example.service";
+        final String grandchildLogger = "com.example.service.impl";
         
         // When
-        Logger parent = factory.getLogger(parentLogger);
-        Logger child = factory.getLogger(childLogger);
-        Logger grandchild = factory.getLogger(grandchildLogger);
+        final Logger parent = factory.getLogger(parentLogger);
+        final Logger child = factory.getLogger(childLogger);
+        final Logger grandchild = factory.getLogger(grandchildLogger);
         
         // Then
         assertNotNull(parent);
