@@ -90,7 +90,6 @@ jobs:
           name: compiled-artifacts
           path: |
             target/classes/
-            target/test-classes/
           retention-days: 1
 
   # Job 2: Run activation tests on all JDK/SLF4J combinations (except JDK 21 + SLF4J 2.0 already tested)
