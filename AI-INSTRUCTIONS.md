@@ -20,6 +20,12 @@ The project is built with Maven and uses the Maven wrapper for all builds.
 - **Repository**: GitHub
 - **CI/CD**: GitHub Actions for validation, build, testing, and deployment to Maven Central and GitHub Releases
 
+### Development Environment
+- **JDK**: 21
+- **Terminal**: PowerShell (Windows) or equivalent shell (Unix/Linux/macOS)
+- **IDEs**: IntelliJ IDEA, VS Code, GitHub Codespaces
+- **Version Control**: Git
+
 ### Build Profiles
 **SLF4J Version Profiles**:
 - **slf4j-2.0** (default): Depends on SLF4J 2.0. Used for compilation, testing, validation, and releases
