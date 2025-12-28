@@ -22,6 +22,7 @@ import java.lang.reflect.Parameter;
 public class MockLoggerExtension implements
         TestInstancePostProcessor,
         BeforeEachCallback,
+        AfterEachCallback,
         ParameterResolver {
 
     /**
@@ -62,14 +63,16 @@ public class MockLoggerExtension implements
      * </p>
      *
      * @param context The extension context.
-     * @throws SecurityException        If a security manager denies access.
-     * @throws IllegalArgumentException If an illegal argument is passed.
-     * @throws IllegalAccessException   If the field is inaccessible.
+     * @throws Exception If an error occurs.
      */
     @Override
-    public void beforeEach(final ExtensionContext context) throws IllegalAccessException {
+    public void beforeEach(final ExtensionContext context) throws Exception {
         final Object testInstance = context.getRequiredTestInstance();
         final Class<?> testClass = testInstance.getClass();
+
+        // Reset loggers defined in @WithMockLogger(reset = {...})
+        resetAdditionalLoggers(testClass);
+
         final Field[] fields = testClass.getDeclaredFields();
         for (final Field field : fields) {
             if (isLoggerField(field)) {
@@ -78,6 +81,35 @@ public class MockLoggerExtension implements
                 if (value instanceof Logger) {
                     final Logger slf4jLogger = (Logger) value;
                     reinitializeLogger(field, testClass, slf4jLogger);
+                }
+            }
+        }
+    }
+
+    /**
+     * Resets additional {@link MockLogger} instances after each test method.
+     *
+     * @param context The extension context.
+     * @throws Exception If an error occurs.
+     */
+    @Override
+    public void afterEach(final ExtensionContext context) throws Exception {
+        final Class<?> testClass = context.getRequiredTestClass();
+        resetAdditionalLoggers(testClass);
+    }
+
+    /**
+     * Resets loggers specified in the {@link WithMockLogger#reset()} attribute.
+     *
+     * @param testClass The test class to check for the annotation.
+     */
+    private void resetAdditionalLoggers(final Class<?> testClass) {
+        final WithMockLogger withMockLogger = testClass.getAnnotation(WithMockLogger.class);
+        if (withMockLogger != null) {
+            for (final String loggerName : withMockLogger.reset()) {
+                final Logger logger = LoggerFactory.getLogger(loggerName);
+                if (logger instanceof MockLogger) {
+                    ((MockLogger) logger).clearEvents();
                 }
             }
         }
