@@ -18,7 +18,6 @@ package org.usefultoys.slf4jtestmock;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.MockLogger;
@@ -26,7 +25,7 @@ import org.slf4j.impl.MockLogger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Example tests demonstrating the MockLoggerDebugExtension.
+ * Example tests demonstrating the MockLoggerDebugExtension via @WithMockLoggerDebug.
  * <p>
  * When assertions fail, the extension automatically prints all logged events,
  * making it easier to debug test failures.
@@ -42,7 +41,7 @@ class MockLoggerDebugExtensionTest {
      */
     @Nested
     @DisplayName("Single Logger Example")
-    @ExtendWith(MockLoggerDebugExtension.class)
+    @WithMockLoggerDebug
     class SingleLoggerExample {
 
         @Test
@@ -83,7 +82,7 @@ class MockLoggerDebugExtensionTest {
      */
     @Nested
     @DisplayName("Multiple Loggers Example")
-    @ExtendWith(MockLoggerDebugExtension.class)
+    @WithMockLoggerDebug
     class MultipleLoggersExample {
 
         @Test
@@ -111,7 +110,7 @@ class MockLoggerDebugExtensionTest {
      */
     @Nested
     @DisplayName("Passing Test Example")
-    @ExtendWith(MockLoggerDebugExtension.class)
+    @WithMockLoggerDebug
     class PassingTestExample {
 
         @Test
@@ -131,7 +130,7 @@ class MockLoggerDebugExtensionTest {
      */
     @Nested
     @DisplayName("Markers Example")
-    @ExtendWith(MockLoggerDebugExtension.class)
+    @WithMockLoggerDebug
     class MarkersExample {
 
         @Test
@@ -155,7 +154,7 @@ class MockLoggerDebugExtensionTest {
      */
     @Nested
     @DisplayName("Exceptions Example")
-    @ExtendWith(MockLoggerDebugExtension.class)
+    @WithMockLoggerDebug
     class ExceptionsExample {
 
         @Test
