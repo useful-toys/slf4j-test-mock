@@ -374,7 +374,7 @@ class MockLoggerExtensionTest {
 
         @Test
         @DisplayName("Should isolate events between loggers")
-        void shouldIsolateEvents betweenLoggers() {
+        void shouldIsolateEventsBetweenLoggers() {
             logger1.info("Message to logger1");
             logger2.warn("Message to logger2");
             logger3.error("Message to logger3");
@@ -447,7 +447,7 @@ class MockLoggerExtensionTest {
 
         @Test
         @DisplayName("Should inject both field and parameter loggers")
-        void shouldInject bothFieldAndParameterLoggers(@Slf4jMock(value = "param.logger") Logger paramLogger) {
+        void shouldInjectBothFieldAndParameterLoggers(@Slf4jMock(value = "param.logger") Logger paramLogger) {
             assertNotNull(fieldLogger);
             assertNotNull(paramLogger);
             assertNotSame(fieldLogger, paramLogger);

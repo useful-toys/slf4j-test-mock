@@ -124,6 +124,25 @@ class ConfigurationExampleTest {
 }
 ```
 
+### Debugging Failed Tests
+
+To automatically print logged events when a test fails, add the `@WithMockLoggerDebug` annotation:
+
+```java
+@WithMockLogger
+@WithMockLoggerDebug
+class DebugExampleTest {
+    @Slf4jMock
+    Logger logger;
+    
+    @Test
+    void testSomething() {
+        logger.info("This will be printed to stderr if the test fails");
+        // ...
+    }
+}
+```
+
 ### Resetting Additional Loggers
 
 Sometimes your code under test uses internal loggers that are not injected into the test class. You can ensure these loggers are reset (cleared) before and after each test using the `@WithMockLogger` annotation:
