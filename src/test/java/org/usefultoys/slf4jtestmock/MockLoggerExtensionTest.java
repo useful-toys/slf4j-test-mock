@@ -16,10 +16,14 @@
 package org.usefultoys.slf4jtestmock;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.impl.MockLogger;
 import org.slf4j.impl.MockLoggerEvent;
 
@@ -370,7 +374,7 @@ class MockLoggerExtensionTest {
 
         @Test
         @DisplayName("Should isolate events between loggers")
-        void shouldIsolateEventsBetweenLoggers() {
+        void shouldIsolateEvents betweenLoggers() {
             logger1.info("Message to logger1");
             logger2.warn("Message to logger2");
             logger3.error("Message to logger3");
@@ -443,7 +447,7 @@ class MockLoggerExtensionTest {
 
         @Test
         @DisplayName("Should inject both field and parameter loggers")
-        void shouldInjectBothFieldAndParameterLoggers(@Slf4jMock(value = "param.logger") Logger paramLogger) {
+        void shouldInject bothFieldAndParameterLoggers(@Slf4jMock(value = "param.logger") Logger paramLogger) {
             assertNotNull(fieldLogger);
             assertNotNull(paramLogger);
             assertNotSame(fieldLogger, paramLogger);
@@ -922,5 +926,42 @@ class MockLoggerExtensionTest {
                 "should have 0 events at start of test 3");
         }
     }
-}
 
+    /**
+     * Tests for resetting additional loggers specified in @WithMockLogger.
+     */
+    @Nested
+    @DisplayName("Reset Additional Loggers")
+    @WithMockLogger(reset = {"reset.logger.1", "reset.logger.2"})
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+    class ResetAdditionalLoggersTest {
+
+        @Test
+        @Order(1)
+        @DisplayName("Should reset specified loggers before test")
+        void shouldResetSpecifiedLoggersBeforeTest() {
+            // Loggers should be clean at start of test
+            MockLogger logger1 = (MockLogger) LoggerFactory.getLogger("reset.logger.1");
+            MockLogger logger2 = (MockLogger) LoggerFactory.getLogger("reset.logger.2");
+
+            assertEquals(0, logger1.getEventCount(), "logger1 should be empty at start");
+            assertEquals(0, logger2.getEventCount(), "logger2 should be empty at start");
+
+            // Add events
+            logger1.info("Event 1");
+            logger2.info("Event 2");
+        }
+
+        @Test
+        @Order(2)
+        @DisplayName("Should reset specified loggers between tests")
+        void shouldResetSpecifiedLoggersBetweenTests() {
+            // Loggers should be clean again, even if previous test added events
+            MockLogger logger1 = (MockLogger) LoggerFactory.getLogger("reset.logger.1");
+            MockLogger logger2 = (MockLogger) LoggerFactory.getLogger("reset.logger.2");
+
+            assertEquals(0, logger1.getEventCount(), "logger1 should be empty at start of second test");
+            assertEquals(0, logger2.getEventCount(), "logger2 should be empty at start of second test");
+        }
+    }
+}

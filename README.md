@@ -54,21 +54,20 @@ For more details on the multi-version support strategy, see [TDR-0005: Multiple 
 
 This library provides multiple ways to test logging in your application. Choose the approach that best fits your testing style.
 
-### Recommended: JUnit 5 Integration with @Slf4jMock
+### Recommended: JUnit 5 Integration with @WithMockLogger
 
-The easiest and most convenient way to use this library is with the JUnit 5 extension, which automatically manages logger lifecycle:
+The easiest and most convenient way to use this library is with the `@WithMockLogger` annotation, which automatically registers the JUnit 5 extension and manages logger lifecycle:
 
 ```java
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.impl.MockLoggerEvent.Level;
-import org.usefultoys.slf4jtestmock.MockLoggerExtension;
+import org.usefultoys.slf4jtestmock.WithMockLogger;
 import org.usefultoys.slf4jtestmock.Slf4jMock;
 
 import static org.usefultoys.slf4jtestmock.AssertLogger.*;
 
-@ExtendWith(MockLoggerExtension.class)
+@WithMockLogger
 class MyServiceTest {
     
     @Slf4jMock
@@ -101,7 +100,7 @@ class MyServiceTest {
 You can declare multiple loggers in the same test class using different `@Slf4jMock` annotations (though typically one logger per test is sufficient):
 
 ```java
-@ExtendWith(MockLoggerExtension.class)
+@WithMockLogger
 class ConfigurationExampleTest {
     
     // Multiple loggers in the same test (less common, but supported)
@@ -124,6 +123,19 @@ class ConfigurationExampleTest {
     }
 }
 ```
+
+### Resetting Additional Loggers
+
+Sometimes your code under test uses internal loggers that are not injected into the test class. You can ensure these loggers are reset (cleared) before and after each test using the `@WithMockLogger` annotation:
+
+```java
+@WithMockLogger(reset = {"com.example.InternalLogger", "org.thirdparty.LibLogger"})
+class MyTest {
+    // ...
+}
+```
+
+This is particularly useful when testing static methods or singletons that use their own loggers.
 
 ### Alternative: Manual Logger Management
 
@@ -202,7 +214,7 @@ The `AssertLogger` utility class provides comprehensive assertion methods for ve
 The recommended approach is to verify log messages using **message parts** instead of matching the exact message. This makes tests more resilient to message format changes and handles variable content gracefully.
 
 ```java
-@ExtendWith(MockLoggerExtension.class)
+@WithMockLogger
 class MessagePartsTest {
     
     @Slf4jMock
@@ -251,7 +263,7 @@ class MessagePartsTest {
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-@ExtendWith(MockLoggerExtension.class)
+@WithMockLogger
 class SecurityTest {
     
     @Slf4jMock("security.audit")
@@ -271,7 +283,7 @@ class SecurityTest {
 ### Testing Exception Logging
 
 ```java
-@ExtendWith(MockLoggerExtension.class)
+@WithMockLogger
 class ExceptionHandlingTest {
     
     @Slf4jMock
@@ -300,7 +312,7 @@ When your code logs multiple messages with different levels and markers, use the
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-@ExtendWith(MockLoggerExtension.class)
+@WithMockLogger
 class MultipleEventsTest {
     
     @Slf4jMock
@@ -335,7 +347,7 @@ class MultipleEventsTest {
 ### Controlling Log Levels
 
 ```java
-@ExtendWith(MockLoggerExtension.class)
+@WithMockLogger
 class LogLevelTest {
     
     @Slf4jMock(debugEnabled = false)
@@ -355,7 +367,7 @@ class LogLevelTest {
 ### Verifying Event Sequences
 
 ```java
-@ExtendWith(MockLoggerExtension.class)
+@WithMockLogger
 class WorkflowTest {
     
     @Slf4jMock
@@ -380,7 +392,7 @@ class WorkflowTest {
 ### Counting Events
 
 ```java
-@ExtendWith(MockLoggerExtension.class)
+@WithMockLogger
 class EventCountTest {
     
     @Slf4jMock
@@ -416,7 +428,7 @@ class EventCountTest {
 When event order doesn't matter, use existence-based assertions:
 
 ```java
-@ExtendWith(MockLoggerExtension.class)
+@WithMockLogger
 class ExistenceAssertionTest {
     
     @Slf4jMock
@@ -442,7 +454,7 @@ class ExistenceAssertionTest {
 
 ```java
 // Recommended - automatic logger management
-@ExtendWith(MockLoggerExtension.class)
+@WithMockLogger
 class MyTest {
     @Slf4jMock Logger logger;
     // No setup or cleanup needed!
