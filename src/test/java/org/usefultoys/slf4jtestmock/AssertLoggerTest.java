@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Unit tests for {@link AssertLogger}.
@@ -1438,6 +1439,186 @@ class AssertLoggerTest {
             final Logger logger = new MockLogger("test");
             final AssertionError error = assertThrows(AssertionError.class, () -> AssertLogger.assertHasEventWithArgument(logger, "arg1"));
             assertTrue(error.getMessage().contains("should have at least one event with expected argument"));
+        }
+    }
+
+    @Nested
+    @DisplayName("assertEventWithArgument(Logger, int, int, Object)")
+    class AssertEventWithArgumentByIndex {
+
+        @Test
+        @DisplayName("should pass when expected argument matches at index")
+        void shouldPassWhenExpectedArgumentMatchesAtIndex() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {} {}", "World", 42);
+
+            AssertLogger.assertEventWithArgument(logger, 0, 0, "World");
+            AssertLogger.assertEventWithArgument(logger, 0, 1, 42);
+        }
+
+        @Test
+        @DisplayName("should fail when expected argument does not match at index")
+        void shouldFailWhenExpectedArgumentDoesNotMatchAtIndex() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {} {}", "World", 42);
+
+            final AssertionError error = assertThrows(AssertionError.class,
+                    () -> AssertLogger.assertEventWithArgument(logger, 0, 1, "World"),
+                    "should throw AssertionError when argument at index does not match");
+            assertTrue(error.getMessage().contains("argument"),
+                    "should mention argument in failure message");
+        }
+
+        @Test
+        @DisplayName("should support null expected argument")
+        void shouldSupportNullExpectedArgument() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {}", (Object) null);
+
+            AssertLogger.assertEventWithArgument(logger, 0, 0, null);
+        }
+
+        @Test
+        @DisplayName("should compare array arguments using deep equality")
+        void shouldCompareArrayArgumentsUsingDeepEquality() {
+            final Logger logger = new MockLogger("test");
+            final Object[] arrayArgument = new Object[]{"a", 1};
+            logger.info("Hello {}", (Object) arrayArgument);
+
+            AssertLogger.assertEventWithArgument(logger, 0, 0, new Object[]{"a", 1});
+        }
+    }
+
+    @Nested
+    @DisplayName("assertEventWithArguments(Logger, int, Object...)")
+    class AssertEventWithArgumentsExactly {
+
+        @Test
+        @DisplayName("should pass when expected arguments match exactly")
+        void shouldPassWhenExpectedArgumentsMatchExactly() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {} {}", "World", 42);
+
+            AssertLogger.assertEventWithArguments(logger, 0, "World", 42);
+        }
+
+        @Test
+        @DisplayName("should pass when expected arguments are empty and event has no arguments")
+        void shouldPassWhenExpectedArgumentsEmptyAndEventHasNoArguments() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello");
+
+            AssertLogger.assertEventWithArguments(logger, 0);
+        }
+
+        @Test
+        @DisplayName("should fail when argument count does not match")
+        void shouldFailWhenArgumentCountDoesNotMatch() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {}", "World");
+
+            final AssertionError error = assertThrows(AssertionError.class,
+                    () -> AssertLogger.assertEventWithArguments(logger, 0, "World", 42),
+                    "should throw AssertionError when argument count does not match");
+            assertTrue(error.getMessage().contains("expected") && error.getMessage().contains("actual"),
+                    "should include expected and actual in failure message");
+        }
+
+        @Test
+        @DisplayName("should compare nested arrays using deep equality")
+        void shouldCompareNestedArraysUsingDeepEquality() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {}", (Object) new Object[]{"a", 1});
+
+            AssertLogger.assertEventWithArguments(logger, 0, (Object) new Object[]{"a", 1});
+        }
+    }
+
+    @Nested
+    @DisplayName("assertEventHasArgumentCount(Logger, int, int)")
+    class AssertEventHasArgumentCount {
+
+        @Test
+        @DisplayName("should pass when argument count matches")
+        void shouldPassWhenArgumentCountMatches() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello");
+            logger.info("Hello {}", "World");
+            logger.info("Hello {} {}", "World", 42);
+
+            AssertLogger.assertEventHasArgumentCount(logger, 0, 0);
+            AssertLogger.assertEventHasArgumentCount(logger, 1, 1);
+            AssertLogger.assertEventHasArgumentCount(logger, 2, 2);
+        }
+
+        @Test
+        @DisplayName("should fail when argument count does not match")
+        void shouldFailWhenArgumentCountDoesNotMatch() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {}", "World");
+
+            final AssertionError error = assertThrows(AssertionError.class,
+                    () -> AssertLogger.assertEventHasArgumentCount(logger, 0, 0),
+                    "should throw AssertionError when argument count does not match");
+            assertTrue(error.getMessage().contains("argument count"),
+                    "should mention argument count in failure message");
+        }
+    }
+
+    @Nested
+    @DisplayName("assertHasEventWithArgumentCount(Logger, int)")
+    class AssertHasEventWithArgumentCount {
+
+        @Test
+        @DisplayName("should pass when at least one event has expected argument count")
+        void shouldPassWhenAtLeastOneEventHasExpectedArgumentCount() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello");
+            logger.info("Hello {}", "World");
+
+            AssertLogger.assertHasEventWithArgumentCount(logger, 0);
+            AssertLogger.assertHasEventWithArgumentCount(logger, 1);
+        }
+
+        @Test
+        @DisplayName("should fail when no event has expected argument count")
+        void shouldFailWhenNoEventHasExpectedArgumentCount() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {}", "World");
+
+            final AssertionError error = assertThrows(AssertionError.class,
+                    () -> AssertLogger.assertHasEventWithArgumentCount(logger, 2),
+                    "should throw AssertionError when no event has expected argument count");
+            assertTrue(error.getMessage().contains("expected argument count"),
+                    "should mention expected argument count in failure message");
+        }
+    }
+
+    @Nested
+    @DisplayName("assertNoEventWithArgumentCount(Logger, int)")
+    class AssertNoEventWithArgumentCount {
+
+        @Test
+        @DisplayName("should pass when no event has expected argument count")
+        void shouldPassWhenNoEventHasExpectedArgumentCount() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello");
+            logger.info("Hello {}", "World");
+
+            AssertLogger.assertNoEventWithArgumentCount(logger, 2);
+        }
+
+        @Test
+        @DisplayName("should fail when an event has expected argument count")
+        void shouldFailWhenAnEventHasExpectedArgumentCount() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {} {}", "World", 42);
+
+            final AssertionError error = assertThrows(AssertionError.class,
+                    () -> AssertLogger.assertNoEventWithArgumentCount(logger, 2),
+                    "should throw AssertionError when an event has the unexpected argument count");
+            assertTrue(error.getMessage().contains("no events"),
+                    "should mention no events in failure message");
         }
     }
 }

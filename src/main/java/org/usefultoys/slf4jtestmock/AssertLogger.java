@@ -470,6 +470,39 @@ public final class AssertLogger {
         Assertions.assertFalse(hasEvent, String.format("should have no events with throwable type and message parts; unexpected messages: %s", String.join(", ", throwableMessageParts)));
     }
 
+    // Argument assertions
+
+    /**
+     * Asserts that the logger has recorded an event at the specified index with the expected argument at the given argument index.
+     * <p>
+     * This assertion validates the raw arguments stored in the event (not the formatted message).
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     * @param argumentIndex    the argument index (0-based)
+     * @param expectedArgument the expected argument (may be null)
+     */
+    @AIGenerated("copilot")
+    public static void assertEventWithArgument(final @NonNull Logger logger, final int eventIndex, final int argumentIndex, final Object expectedArgument) {
+        final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
+        AssertHelper.assertArgumentAtIndex(event, argumentIndex, expectedArgument);
+    }
+
+    /**
+     * Asserts that the logger has recorded an event at the specified index with exactly the expected arguments.
+     * <p>
+     * This assertion validates argument count and order.
+     *
+     * @param logger             the Logger instance to check (must be a MockLogger)
+     * @param eventIndex         the index of the event to check
+     * @param expectedArguments  the expected arguments (may be empty)
+     */
+    @AIGenerated("copilot")
+    public static void assertEventWithArguments(final @NonNull Logger logger, final int eventIndex, final Object... expectedArguments) {
+        final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
+        AssertHelper.assertArgumentsExactly(event, expectedArguments);
+    }
+
     /**
      * Asserts that the logger has recorded an event at the specified index with the expected argument.
      *
@@ -477,7 +510,7 @@ public final class AssertLogger {
      * @param eventIndex       the index of the event to check
      * @param expectedArgument the expected argument
      */
-    public static void assertEventHasArgument(final @NonNull Logger logger, final int eventIndex, final @NonNull Object expectedArgument) {
+    public static void assertEventHasArgument(final @NonNull Logger logger, final int eventIndex, final Object expectedArgument) {
         final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
         AssertHelper.assertHasArgument(event, expectedArgument);
     }
@@ -488,12 +521,72 @@ public final class AssertLogger {
      * @param logger           the Logger instance to check (must be a MockLogger)
      * @param expectedArgument the expected argument
      */
-    public static void assertHasEventWithArgument(final @NonNull Logger logger, final @NonNull Object expectedArgument) {
+    public static void assertHasEventWithArgument(final @NonNull Logger logger, final Object expectedArgument) {
         final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
         final boolean hasEvent = loggerEvents.stream()
             .anyMatch(event -> AssertHelper.hasArgument(event, expectedArgument));
         Assertions.assertTrue(hasEvent,
             String.format("should have at least one event with expected argument; expected: %s", expectedArgument));
+    }
+
+    /**
+     * Asserts that the logger has recorded at least one event that has the expected argument in any argument position.
+     * <p>
+     * This method is an alias for {@link #assertHasEventWithArgument(Logger, Object)}.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param expectedArgument the expected argument (may be null)
+     */
+    @AIGenerated("copilot")
+    public static void assertHasEventHasArgument(final @NonNull Logger logger, final Object expectedArgument) {
+        assertHasEventWithArgument(logger, expectedArgument);
+    }
+
+    /**
+     * Asserts that the logger has recorded an event at the specified index with the expected argument count.
+     * <p>
+     * This assertion validates only the number of arguments stored in the event (not their values).
+     *
+     * @param logger                the Logger instance to check (must be a MockLogger)
+     * @param eventIndex            the index of the event to check
+     * @param expectedArgumentCount the expected argument count
+     */
+    @AIGenerated("copilot")
+    public static void assertEventHasArgumentCount(final @NonNull Logger logger, final int eventIndex, final int expectedArgumentCount) {
+        final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
+        AssertHelper.assertArgumentCount(event, expectedArgumentCount);
+    }
+
+    /**
+     * Asserts that the logger has recorded at least one event with the expected argument count.
+     * <p>
+     * This assertion validates only the number of arguments stored in the event (not their values).
+     *
+     * @param logger                the Logger instance to check (must be a MockLogger)
+     * @param expectedArgumentCount the expected argument count
+     */
+    @AIGenerated("copilot")
+    public static void assertHasEventWithArgumentCount(final @NonNull Logger logger, final int expectedArgumentCount) {
+        final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
+        final boolean hasEvent = loggerEvents.stream().anyMatch(event -> AssertHelper.hasArgumentCount(event, expectedArgumentCount));
+        Assertions.assertTrue(hasEvent,
+            String.format("should have at least one event with expected argument count; expected: %d", expectedArgumentCount));
+    }
+
+    /**
+     * Asserts that the logger has no recorded events with the expected argument count.
+     * <p>
+     * This assertion validates only the number of arguments stored in the event (not their values).
+     *
+     * @param logger                the Logger instance to check (must be a MockLogger)
+     * @param expectedArgumentCount the argument count that must not be present in any event
+     */
+    @AIGenerated("copilot")
+    public static void assertNoEventWithArgumentCount(final @NonNull Logger logger, final int expectedArgumentCount) {
+        final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
+        final boolean hasEvent = loggerEvents.stream().anyMatch(event -> AssertHelper.hasArgumentCount(event, expectedArgumentCount));
+        Assertions.assertFalse(hasEvent,
+            String.format("should have no events with expected argument count; unexpected count: %d", expectedArgumentCount));
     }
 
     // Per-index negative assertions (negation of assertEvent...)

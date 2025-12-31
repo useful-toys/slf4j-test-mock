@@ -9,6 +9,7 @@ import org.slf4j.impl.MockLoggerEvent;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A package-private utility class with helper methods for {@link AssertLogger}.
@@ -194,7 +195,7 @@ class AssertHelper {
         final boolean hasArgument = hasArgument(event, expectedArgument);
         Assertions.assertTrue(hasArgument,
             String.format("should have expected argument at eventIndex %d; expected: %s, actual arguments: %s",
-                event.getEventIndex(), expectedArgument, Arrays.toString(event.getArguments())));
+                event.getEventIndex(), expectedArgument, Arrays.deepToString(safeArguments(event))));
     }
 
     /**
@@ -205,7 +206,146 @@ class AssertHelper {
      * @return {@code true} if the event's arguments contain the expected one, {@code false} otherwise.
      */
     boolean hasArgument(final MockLoggerEvent event, final Object expectedArgument) {
-        return Arrays.stream(event.getArguments()).anyMatch(expectedArgument::equals);
+        for (final Object argument : safeArguments(event)) {
+            if (argumentEquals(expectedArgument, argument)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Asserts that a log event has an argument at the specified argument index.
+     *
+     * @param event         the log event to check.
+     * @param argumentIndex the argument index (0-based).
+     * @param expectedArgument the expected argument.
+     * @throws AssertionError if the argument index is out of bounds or the argument does not match.
+     */
+    @AIGenerated("copilot")
+    void assertArgumentAtIndex(final MockLoggerEvent event, final int argumentIndex, final Object expectedArgument) {
+        final Object[] actualArguments = safeArguments(event);
+        Assertions.assertTrue(argumentIndex >= 0 && argumentIndex < actualArguments.length,
+            String.format("should have enough event arguments at eventIndex %d; requested argument: %d, available arguments: %d",
+                event.getEventIndex(), argumentIndex, actualArguments.length));
+
+        final Object actualArgument = actualArguments[argumentIndex];
+        Assertions.assertTrue(argumentEquals(expectedArgument, actualArgument),
+            String.format("should have expected argument at eventIndex %d argumentIndex %d; expected: %s, actual: %s",
+                event.getEventIndex(), argumentIndex, expectedArgument, actualArgument));
+    }
+
+    /**
+     * Asserts that a log event has exactly the expected arguments (same length and order).
+     *
+     * @param event             the log event to check.
+     * @param expectedArguments the expected arguments.
+     * @throws AssertionError if the arguments differ.
+     */
+    @AIGenerated("copilot")
+    void assertArgumentsExactly(final MockLoggerEvent event, final Object[] expectedArguments) {
+        final Object[] actualArguments = safeArguments(event);
+        final Object[] safeExpectedArguments = expectedArguments == null ? new Object[0] : expectedArguments;
+
+        Assertions.assertEquals(safeExpectedArguments.length, actualArguments.length,
+            String.format("should have expected argument count at eventIndex %d; expected: %d, actual: %d; expected arguments: %s; actual arguments: %s",
+                event.getEventIndex(), safeExpectedArguments.length, actualArguments.length,
+                Arrays.deepToString(safeExpectedArguments), Arrays.deepToString(actualArguments)));
+
+        for (int i = 0; i < safeExpectedArguments.length; i++) {
+            final Object expectedArgument = safeExpectedArguments[i];
+            final Object actualArgument = actualArguments[i];
+            Assertions.assertTrue(argumentEquals(expectedArgument, actualArgument),
+                String.format("should have expected argument at eventIndex %d argumentIndex %d; expected: %s, actual: %s",
+                    event.getEventIndex(), i, expectedArgument, actualArgument));
+        }
+    }
+
+    /**
+     * Asserts that a log event has exactly the expected argument count.
+     *
+     * @param event                  the log event to check.
+     * @param expectedArgumentCount   the expected argument count.
+     * @throws AssertionError if the argument count differs.
+     */
+    @AIGenerated("copilot")
+    void assertArgumentCount(final MockLoggerEvent event, final int expectedArgumentCount) {
+        final Object[] actualArguments = safeArguments(event);
+        Assertions.assertEquals(expectedArgumentCount, actualArguments.length,
+            String.format("should have expected argument count at eventIndex %d; expected: %d, actual: %d; actual arguments: %s",
+                event.getEventIndex(), expectedArgumentCount, actualArguments.length, Arrays.deepToString(actualArguments)));
+    }
+
+    /**
+     * Checks if a log event has exactly the expected argument count.
+     *
+     * @param event                 the log event to check.
+     * @param expectedArgumentCount  the expected argument count.
+     * @return {@code true} if the event has the expected argument count.
+     */
+    @AIGenerated("copilot")
+    boolean hasArgumentCount(final MockLoggerEvent event, final int expectedArgumentCount) {
+        return safeArguments(event).length == expectedArgumentCount;
+    }
+
+    /**
+     * Returns the event arguments as a non-null array.
+     *
+     * @param event the event.
+     * @return a non-null array.
+     */
+    @AIGenerated("copilot")
+    Object[] safeArguments(final MockLoggerEvent event) {
+        final Object[] arguments = event.getArguments();
+        return arguments == null ? new Object[0] : arguments;
+    }
+
+    /**
+     * Compares two arguments for equality.
+     * <p>
+     * This comparison is null-safe and array-aware. If both values are arrays, this method compares
+     * array contents (including primitive arrays). Otherwise it falls back to {@link Objects#equals(Object, Object)}.
+     *
+     * @param expected the expected value.
+     * @param actual   the actual value.
+     * @return {@code true} if they are considered equal.
+     */
+    @AIGenerated("copilot")
+    boolean argumentEquals(final Object expected, final Object actual) {
+        if (expected == actual) {
+            return true;
+        }
+        if (expected == null || actual == null) {
+            return false;
+        }
+        if (expected instanceof Object[] && actual instanceof Object[]) {
+            return Arrays.deepEquals((Object[]) expected, (Object[]) actual);
+        }
+        if (expected instanceof byte[] && actual instanceof byte[]) {
+            return Arrays.equals((byte[]) expected, (byte[]) actual);
+        }
+        if (expected instanceof short[] && actual instanceof short[]) {
+            return Arrays.equals((short[]) expected, (short[]) actual);
+        }
+        if (expected instanceof int[] && actual instanceof int[]) {
+            return Arrays.equals((int[]) expected, (int[]) actual);
+        }
+        if (expected instanceof long[] && actual instanceof long[]) {
+            return Arrays.equals((long[]) expected, (long[]) actual);
+        }
+        if (expected instanceof char[] && actual instanceof char[]) {
+            return Arrays.equals((char[]) expected, (char[]) actual);
+        }
+        if (expected instanceof float[] && actual instanceof float[]) {
+            return Arrays.equals((float[]) expected, (float[]) actual);
+        }
+        if (expected instanceof double[] && actual instanceof double[]) {
+            return Arrays.equals((double[]) expected, (double[]) actual);
+        }
+        if (expected instanceof boolean[] && actual instanceof boolean[]) {
+            return Arrays.equals((boolean[]) expected, (boolean[]) actual);
+        }
+        return Objects.equals(expected, actual);
     }
 
     /**
