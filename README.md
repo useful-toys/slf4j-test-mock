@@ -13,7 +13,7 @@ A comprehensive mock implementation of the SLF4J logging framework designed spec
 - **Level Control**: Fine-grained control over which log levels are enabled during tests
 - **Marker Support**: Full support for SLF4J markers in logging and assertions
 - **MDC Support**: Mock implementation of Mapped Diagnostic Context (MDC) including SLF4J 2.0 Deque methods
-- **Thread-Safe**: Safe for use in single-threaded test environments
+- **Parallel Test Isolation (JUnit 5)**: When used with `@WithMockLogger` and/or `@WithMockLoggerDebug`, logger instances are isolated per test execution to avoid interference when two parallel tests use the same logger name
 - **Java 8+ Compatible**: Works with Java 8 and higher versions
 
 ## SLF4J Compatibility
