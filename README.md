@@ -214,6 +214,18 @@ The `AssertLogger` utility class provides comprehensive assertion methods for ve
 - `assertHasEventWithThrowable(Logger, Class, String...)` - Assert any event has throwable type and its message contains all parts
 - `assertHasEventWithThrowable(Logger)` - Assert any event has any throwable
 
+**Argument Assertions:**
+- `assertEventWithArgument(Logger, int, int, Object)` - Assert event has expected argument at the specified argument index
+- `assertEventWithArguments(Logger, int, Object...)` - Assert event has exactly the expected arguments (same count and order)
+- `assertEventHasArgument(Logger, int, Object)` - Assert event has the expected argument in any argument position
+- `assertHasEventWithArgument(Logger, Object)` - Assert any event has the expected argument in any argument position
+- `assertHasEventHasArgument(Logger, Object)` - Alias for `assertHasEventWithArgument(Logger, Object)`
+
+**Argument Count Assertions:**
+- `assertEventHasArgumentCount(Logger, int, int)` - Assert event has exactly N arguments
+- `assertHasEventWithArgumentCount(Logger, int)` - Assert any event has exactly N arguments
+- `assertNoEventWithArgumentCount(Logger, int)` - Assert no event has exactly N arguments
+
 **Event Counting Assertions:**
 - `assertEventCount(Logger, int)` - Assert total number of events
 - `assertNoEvents(Logger)` - Assert no events were logged
