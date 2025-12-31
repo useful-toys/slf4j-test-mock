@@ -95,6 +95,36 @@ class MyServiceTest {
 - No manual setup or teardown code required
 - Logger is ready to use immediately
 
+### Parallel Execution Limitations (and Mitigations)
+
+The library isolates logger instances per test execution when you use `@WithMockLogger` and/or `@WithMockLoggerDebug`.
+This prevents interference when two parallel tests request the same logger name **on the test thread**.
+
+However, there are important cases where parallel execution can still produce logger conflicts:
+
+- **Thread pools / `CompletableFuture` / `ExecutorService` / `parallelStream`**: scope isolation is based on a thread-local scope.
+    `InheritableThreadLocal` only propagates to threads created *after* the scope is set.
+    Thread pools reuse pre-existing threads, so asynchronous logging may run with `scopeId == null` (global scope), mixing events from parallel tests.
+- **Legacy static loggers** obtained outside the extension lifecycle (e.g., `static final Logger logger = LoggerFactory.getLogger("shared")`):
+    these are created with `scopeId == null` and remain shared globally.
+
+If you hit one of these scenarios, choose one of the following mitigation strategies:
+
+**Option A — Make the affected tests serial** (recommended when you cannot change the code under test)
+
+- Use JUnit 5 to prevent parallel execution for a class or method, e.g. `@Execution(ExecutionMode.SAME_THREAD)`.
+- Or use `@ResourceLock("logger:shared")` to serialize only tests sharing a known resource.
+
+**Option B — Use unique logger names per test** (only when you control the logger name)
+
+- If the code under test allows configuring the logger name (or you can inject a name), use a unique value per test/class.
+- This avoids collisions even if asynchronous work logs from a global scope.
+
+**Option C — Keep parallel execution, but avoid asserting exact log isolation**
+
+- Prefer asserting functional behavior for highly asynchronous code.
+- If log assertions are essential, run only those log-asserting tests in serial (Option A) or at a higher test level.
+
 **Configuration Options:**
 
 You can declare multiple loggers in the same test class using different `@Slf4jMock` annotations (though typically one logger per test is sufficient):
