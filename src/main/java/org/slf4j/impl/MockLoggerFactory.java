@@ -19,10 +19,13 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
+import org.usefultoys.slf4jtestmock.AIGenerated;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A mock implementation of {@link ILoggerFactory} intended for use in unit tests.
@@ -51,14 +54,57 @@ import java.util.Map;
 public class MockLoggerFactory implements ILoggerFactory {
 
     /**
+     * Thread-local scope id used to isolate logger instances between parallel test executions.
+     * <p>
+     * When set, {@link #getLogger(String)} will return distinct {@link MockLogger} instances per
+     * {@code (scopeId, loggerName)} pair. When not set, behavior falls back to the historical
+     * global cache keyed only by logger name.
+     */
+    private static final InheritableThreadLocal<String> CURRENT_SCOPE_ID = new InheritableThreadLocal<>();
+
+    /**
      * Default constructor for SLF4J factory instantiation.
      */
     public MockLoggerFactory() {
         // Default constructor
     }
 
-    Map<String, Logger> nameToLogger = new HashMap<>();
+    Map<LoggerKey, Logger> scopedNameToLogger = new ConcurrentHashMap<>();
     static final MockLoggerFactory instance = new MockLoggerFactory();
+
+    /**
+     * Sets the current scope id for the calling thread.
+     * <p>
+     * Intended to be used by the JUnit extension to isolate parallel tests.
+     *
+     * @param scopeId the scope id to set (null clears scope)
+     */
+    @AIGenerated("copilot")
+    public static void setCurrentScopeId(final String scopeId) {
+        if (scopeId == null) {
+            CURRENT_SCOPE_ID.remove();
+        } else {
+            CURRENT_SCOPE_ID.set(scopeId);
+        }
+    }
+
+    /**
+     * Returns the current scope id for the calling thread, or null if none is set.
+     *
+     * @return the current scope id, or null
+     */
+    @AIGenerated("copilot")
+    public static String getCurrentScopeId() {
+        return CURRENT_SCOPE_ID.get();
+    }
+
+    /**
+     * Clears the current scope id for the calling thread.
+     */
+    @AIGenerated("copilot")
+    public static void clearCurrentScopeId() {
+        CURRENT_SCOPE_ID.remove();
+    }
 
     /**
      * Returns the singleton instance of this factory.
@@ -74,12 +120,9 @@ public class MockLoggerFactory implements ILoggerFactory {
 
     @Override
     public Logger getLogger(final String name) {
-        Logger logger = nameToLogger.get(name);
-        if (logger != null) {
-            return logger;
-        }
-        nameToLogger.put(name, logger = new MockLogger(name));
-        return logger;
+        final String scopeId = CURRENT_SCOPE_ID.get();
+        final LoggerKey key = new LoggerKey(scopeId, name);
+        return scopedNameToLogger.computeIfAbsent(key, k -> new MockLogger(name));
     }
 
     /**
@@ -91,6 +134,45 @@ public class MockLoggerFactory implements ILoggerFactory {
      * @return unmodifiable map of logger name to Logger instance
      */
     public static Map<String, Logger> getLoggers() {
-        return Collections.unmodifiableMap(instance.nameToLogger);
+        final String scopeId = CURRENT_SCOPE_ID.get();
+        final Map<String, Logger> result = new HashMap<>();
+        for (final Map.Entry<LoggerKey, Logger> entry : instance.scopedNameToLogger.entrySet()) {
+            if (Objects.equals(scopeId, entry.getKey().scopeId)) {
+                result.put(entry.getKey().loggerName, entry.getValue());
+            }
+        }
+        return Collections.unmodifiableMap(result);
+    }
+
+    /**
+     * Key for caching loggers.
+     */
+    @AIGenerated("copilot")
+    @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+    static final class LoggerKey {
+        String scopeId;
+        String loggerName;
+
+        LoggerKey(final String scopeId, final String loggerName) {
+            this.scopeId = scopeId;
+            this.loggerName = loggerName;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            final LoggerKey loggerKey = (LoggerKey) o;
+            return Objects.equals(scopeId, loggerKey.scopeId) && Objects.equals(loggerName, loggerKey.loggerName);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(scopeId, loggerName);
+        }
     }
 }
