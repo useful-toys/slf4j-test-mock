@@ -74,6 +74,9 @@ public class MockLoggerDebugExtension implements InvocationInterceptor {
             final ReflectiveInvocationContext<Method> invocationContext,
             final ExtensionContext extensionContext) throws Throwable {
 
+        final String previousScopeId = MockLoggerFactory.getCurrentScopeId();
+        MockLoggerFactory.setCurrentScopeId(extensionContext.getUniqueId());
+
         try {
             invocation.proceed();
         } catch (final AssertionError e) {
@@ -90,6 +93,8 @@ public class MockLoggerDebugExtension implements InvocationInterceptor {
             }
 
             throw e;
+        } finally {
+            MockLoggerFactory.setCurrentScopeId(previousScopeId);
         }
     }
 
