@@ -1621,4 +1621,108 @@ class AssertLoggerTest {
                     "should mention no events in failure message");
         }
     }
+
+    @Nested
+    @DisplayName("assertEventNotHasArgument(Logger, int, Object)")
+    class AssertEventNotHasArgument {
+
+        @Test
+        @DisplayName("should pass when event does not contain unexpected argument")
+        void shouldPassWhenEventDoesNotContainUnexpectedArgument() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {} {}", "World", 42);
+
+            AssertLogger.assertEventNotHasArgument(logger, 0, "Universe");
+        }
+
+        @Test
+        @DisplayName("should fail when event contains unexpected argument")
+        void shouldFailWhenEventContainsUnexpectedArgument() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {} {}", "World", 42);
+
+            final AssertionError error = assertThrows(AssertionError.class,
+                () -> AssertLogger.assertEventNotHasArgument(logger, 0, "World"),
+                "should throw AssertionError when event contains unexpected argument");
+            assertTrue(error.getMessage().contains("unexpected argument"),
+                "should mention unexpected argument in failure message");
+        }
+
+        @Test
+        @DisplayName("should compare array arguments using deep equality")
+        void shouldCompareArrayArgumentsUsingDeepEquality() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {}", (Object) new Object[]{"a", 1});
+
+            final AssertionError error = assertThrows(AssertionError.class,
+                () -> AssertLogger.assertEventNotHasArgument(logger, 0, new Object[]{"a", 1}),
+                "should throw AssertionError when event contains unexpected array argument");
+            assertTrue(error.getMessage().contains("unexpected argument"),
+                "should mention unexpected argument in failure message");
+        }
+    }
+
+    @Nested
+    @DisplayName("assertEventNotWithArgument(Logger, int, int, Object)")
+    class AssertEventNotWithArgumentByIndex {
+
+        @Test
+        @DisplayName("should pass when argument at index differs")
+        void shouldPassWhenArgumentAtIndexDiffers() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {} {}", "World", 42);
+
+            AssertLogger.assertEventNotWithArgument(logger, 0, 1, "World");
+        }
+
+        @Test
+        @DisplayName("should pass when argument index is out of bounds")
+        void shouldPassWhenArgumentIndexOutOfBounds() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {}", "World");
+
+            AssertLogger.assertEventNotWithArgument(logger, 0, 5, "World");
+        }
+
+        @Test
+        @DisplayName("should fail when argument at index matches unexpected argument")
+        void shouldFailWhenArgumentAtIndexMatchesUnexpectedArgument() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {} {}", "World", 42);
+
+            final AssertionError error = assertThrows(AssertionError.class,
+                () -> AssertLogger.assertEventNotWithArgument(logger, 0, 0, "World"),
+                "should throw AssertionError when argument at index matches unexpected argument");
+            assertTrue(error.getMessage().contains("argumentIndex"),
+                "should mention argumentIndex in failure message");
+        }
+    }
+
+    @Nested
+    @DisplayName("assertEventNotWithArguments(Logger, int, Object...)")
+    class AssertEventNotWithArguments {
+
+        @Test
+        @DisplayName("should pass when event arguments do not match unexpected arguments exactly")
+        void shouldPassWhenEventArgumentsDoNotMatchUnexpectedArgumentsExactly() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {} {}", "World", 42);
+
+            AssertLogger.assertEventNotWithArguments(logger, 0, "World");
+            AssertLogger.assertEventNotWithArguments(logger, 0, 42, "World");
+        }
+
+        @Test
+        @DisplayName("should fail when event arguments match unexpected arguments exactly")
+        void shouldFailWhenEventArgumentsMatchUnexpectedArgumentsExactly() {
+            final Logger logger = new MockLogger("test");
+            logger.info("Hello {} {}", "World", 42);
+
+            final AssertionError error = assertThrows(AssertionError.class,
+                () -> AssertLogger.assertEventNotWithArguments(logger, 0, "World", 42),
+                "should throw AssertionError when event arguments match unexpected arguments exactly");
+            assertTrue(error.getMessage().contains("exact arguments"),
+                "should mention exact arguments in failure message");
+        }
+    }
 }

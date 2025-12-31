@@ -530,19 +530,6 @@ public final class AssertLogger {
     }
 
     /**
-     * Asserts that the logger has recorded at least one event that has the expected argument in any argument position.
-     * <p>
-     * This method is an alias for {@link #assertHasEventWithArgument(Logger, Object)}.
-     *
-     * @param logger           the Logger instance to check (must be a MockLogger)
-     * @param expectedArgument the expected argument (may be null)
-     */
-    @AIGenerated("copilot")
-    public static void assertHasEventHasArgument(final @NonNull Logger logger, final Object expectedArgument) {
-        assertHasEventWithArgument(logger, expectedArgument);
-    }
-
-    /**
      * Asserts that the logger has recorded an event at the specified index with the expected argument count.
      * <p>
      * This assertion validates only the number of arguments stored in the event (not their values).
@@ -587,6 +574,60 @@ public final class AssertLogger {
         final boolean hasEvent = loggerEvents.stream().anyMatch(event -> AssertHelper.hasArgumentCount(event, expectedArgumentCount));
         Assertions.assertFalse(hasEvent,
             String.format("should have no events with expected argument count; unexpected count: %d", expectedArgumentCount));
+    }
+
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT have the unexpected argument.
+     * <p>
+     * This assertion validates raw arguments stored in the event (not the formatted message).
+     *
+     * @param logger             the Logger instance to check (must be a MockLogger)
+     * @param eventIndex         the index of the event to check
+     * @param unexpectedArgument the argument that should NOT be present in any argument position (may be null)
+     */
+    @AIGenerated("copilot")
+    public static void assertEventNotHasArgument(final @NonNull Logger logger, final int eventIndex, final Object unexpectedArgument) {
+        final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
+        final boolean match = AssertHelper.hasArgument(event, unexpectedArgument);
+        Assertions.assertFalse(match,
+            String.format("should not have event at index %d with argument; unexpected argument: %s", eventIndex, unexpectedArgument));
+    }
+
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT have the unexpected argument at the given argument index.
+     * <p>
+     * If the event does not have an argument at the requested argument index, this assertion passes.
+     *
+     * @param logger             the Logger instance to check (must be a MockLogger)
+     * @param eventIndex         the index of the event to check
+     * @param argumentIndex      the argument index (0-based)
+     * @param unexpectedArgument the argument that should NOT be present at that argument index (may be null)
+     */
+    @AIGenerated("copilot")
+    public static void assertEventNotWithArgument(final @NonNull Logger logger, final int eventIndex, final int argumentIndex, final Object unexpectedArgument) {
+        final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
+        final Object[] arguments = AssertHelper.safeArguments(event);
+        final boolean match = argumentIndex >= 0 && argumentIndex < arguments.length
+            && AssertHelper.argumentEquals(unexpectedArgument, arguments[argumentIndex]);
+        Assertions.assertFalse(match,
+            String.format("should not have event at index %d with argument at argumentIndex %d; unexpected argument: %s", eventIndex, argumentIndex, unexpectedArgument));
+    }
+
+    /**
+     * Asserts that the logger has recorded an event at the specified index that does NOT have exactly the unexpected arguments.
+     * <p>
+     * This assertion validates argument count and order.
+     *
+     * @param logger              the Logger instance to check (must be a MockLogger)
+     * @param eventIndex          the index of the event to check
+     * @param unexpectedArguments the arguments that should NOT match exactly (may be empty)
+     */
+    @AIGenerated("copilot")
+    public static void assertEventNotWithArguments(final @NonNull Logger logger, final int eventIndex, final Object... unexpectedArguments) {
+        final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
+        final boolean match = AssertHelper.hasArgumentsExactly(event, unexpectedArguments);
+        Assertions.assertFalse(match,
+            String.format("should not have event at index %d with exact arguments; unexpected arguments: %s", eventIndex, java.util.Arrays.deepToString(unexpectedArguments == null ? new Object[0] : unexpectedArguments)));
     }
 
     // Per-index negative assertions (negation of assertEvent...)

@@ -262,6 +262,28 @@ class AssertHelper {
     }
 
     /**
+     * Checks if a log event has exactly the expected arguments (same length and order).
+     *
+     * @param event             the log event to check.
+     * @param expectedArguments the expected arguments.
+     * @return {@code true} if the event has exactly the expected arguments.
+     */
+    @AIGenerated("copilot")
+    boolean hasArgumentsExactly(final MockLoggerEvent event, final Object[] expectedArguments) {
+        final Object[] actualArguments = safeArguments(event);
+        final Object[] safeExpectedArguments = expectedArguments == null ? new Object[0] : expectedArguments;
+        if (safeExpectedArguments.length != actualArguments.length) {
+            return false;
+        }
+        for (int i = 0; i < safeExpectedArguments.length; i++) {
+            if (!argumentEquals(safeExpectedArguments[i], actualArguments[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Asserts that a log event has exactly the expected argument count.
      *
      * @param event                  the log event to check.
