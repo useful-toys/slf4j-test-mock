@@ -27,27 +27,14 @@ import org.slf4j.MarkerFactory;
 import org.slf4j.impl.MockLogger;
 import org.slf4j.impl.MockLoggerFactory;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @AIGenerated("copilot")
 @DisplayName("LoggerEventFormatter")
 class LoggerEventFormatterTest {
-
-    @BeforeEach
-    void setUp() {
-        clearMockLoggerFactory();
-    }
-
-    @AfterEach
-    void tearDown() {
-        clearMockLoggerFactory();
-    }
 
     @Nested
     @DisplayName("formatLoggedEvents")
@@ -125,22 +112,5 @@ class LoggerEventFormatterTest {
                 return null;
             }
         );
-    }
-
-    private static void clearMockLoggerFactory() {
-        try {
-            final Field instanceField = MockLoggerFactory.class.getDeclaredField("instance");
-            instanceField.setAccessible(true);
-            final Object instance = instanceField.get(null);
-            assertNotNull(instance, "should access MockLoggerFactory instance via reflection");
-
-            final Field mapField = MockLoggerFactory.class.getDeclaredField("nameToLogger");
-            mapField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            final Map<String, org.slf4j.Logger> map = (Map<String, org.slf4j.Logger>) mapField.get(instance);
-            map.clear();
-        } catch (final ReflectiveOperationException e) {
-            throw new IllegalStateException("should be able to clear MockLoggerFactory for test isolation", e);
-        }
     }
 }
