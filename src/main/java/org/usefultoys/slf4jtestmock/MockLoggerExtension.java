@@ -4,6 +4,7 @@ import org.junit.jupiter.api.extension.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.MockLogger;
+import org.slf4j.impl.MockLoggerFactory;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -45,6 +46,10 @@ public class MockLoggerExtension implements
      */
     @Override
     public void postProcessTestInstance(final Object testInstance, final ExtensionContext context) {
+        final String previousScopeId = MockLoggerFactory.getCurrentScopeId();
+        try {
+            MockLoggerFactory.setCurrentScopeId(context.getUniqueId());
+
         final Class<?> testClass = testInstance.getClass();
         final Field[] fields = testClass.getDeclaredFields();
         for (final Field field : fields) {
@@ -52,6 +57,9 @@ public class MockLoggerExtension implements
                 final Logger logger = createAndConfigureLogger(field, testClass, field.getName());
                 setField(field, testInstance, logger);
             }
+        }
+        } finally {
+            MockLoggerFactory.setCurrentScopeId(previousScopeId);
         }
     }
 
@@ -67,6 +75,8 @@ public class MockLoggerExtension implements
      */
     @Override
     public void beforeEach(final ExtensionContext context) throws Exception {
+        MockLoggerFactory.setCurrentScopeId(context.getUniqueId());
+
         final Object testInstance = context.getRequiredTestInstance();
         final Class<?> testClass = testInstance.getClass();
 
@@ -76,12 +86,8 @@ public class MockLoggerExtension implements
         final Field[] fields = testClass.getDeclaredFields();
         for (final Field field : fields) {
             if (isLoggerField(field)) {
-                field.setAccessible(true);
-                final Object value = field.get(testInstance);
-                if (value instanceof Logger) {
-                    final Logger slf4jLogger = (Logger) value;
-                    reinitializeLogger(field, testClass, slf4jLogger);
-                }
+                final Logger logger = createAndConfigureLogger(field, testClass, field.getName());
+                setField(field, testInstance, logger);
             }
         }
     }
@@ -96,6 +102,8 @@ public class MockLoggerExtension implements
     public void afterEach(final ExtensionContext context) throws Exception {
         final Class<?> testClass = context.getRequiredTestClass();
         resetAdditionalLoggers(testClass);
+
+        MockLoggerFactory.clearCurrentScopeId();
     }
 
     /**
@@ -147,6 +155,11 @@ public class MockLoggerExtension implements
     public Object resolveParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) {
         final Parameter parameter = parameterContext.getParameter();
         final Class<?> testClass = extensionContext.getRequiredTestClass();
+
+        if (MockLoggerFactory.getCurrentScopeId() == null) {
+            MockLoggerFactory.setCurrentScopeId(extensionContext.getUniqueId());
+        }
+
         final Logger logger = createAndConfigureLogger(parameter, testClass, parameter.getName());
 
         parameter.getType();
@@ -202,19 +215,8 @@ public class MockLoggerExtension implements
      * @param slf4jLogger The existing {@link Logger} instance to reinitialize.
      * @throws ExtensionConfigurationException If the provided logger is not a {@link MockLogger}.
      */
-    private void reinitializeLogger(final AnnotatedElement element,
-                                    final Class<?> testClass,
-                                    final Logger slf4jLogger) {
-
-        if (!(slf4jLogger instanceof MockLogger)) {
-            throw new ExtensionConfigurationException(
-                    "Expected a MockLogger but got: " + slf4jLogger.getClass()
-            );
-        }
-
-        final MockLogger mock = (MockLogger) slf4jLogger;
-        applyConfig(mock, element);
-    }
+    // Note: Re-initialization is intentionally implemented by creating a logger for the current scope
+    // and re-injecting it into the test instance in beforeEach.
 
     /**
      * Applies the configuration from the {@link Slf4jMock} annotation to the {@link MockLogger}.
