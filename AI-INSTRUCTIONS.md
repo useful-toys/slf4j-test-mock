@@ -66,6 +66,15 @@ The project is built with Maven and uses the Maven wrapper for all builds.
   - Test: `org.junit.jupiter:*` (JUnit 5)
 - **Build tools**: Use `maven-surefire-plugin` for testing and `jacoco-maven-plugin` for coverage
 
+### Reflection & Testability
+- **Avoid reflection-based access bypass in tests**: Do not use `AccessibleObject#setAccessible(true)` (or similar) to modify visibility of constructors, methods, or fields.
+  - Prefer testing through public APIs, realistic integration points (e.g., JUnit extensions), or package-private seams.
+  - Prefer isolation strategies that do not require reflective mutation (e.g., unique identifiers, test-local instances, deterministic inputs).
+- **When coverage gaps are not realistically testable**, you may *suggest* production-code refactoring options to improve testability (e.g., dependency injection for `LoggerFactory`, small internal facades for reflection/static calls), but:
+  - **Do not apply such production changes automatically** unless explicitly requested.
+  - Ensure the proposal **does not introduce any dependency of production code on test design** (no test-only hooks, flags, or APIs intended solely for tests).
+  - Keep behavior and public APIs unchanged unless the user explicitly asks for API changes.
+
 ### Test Structure & Organization
 - Group tests semantically using JUnit 5's `@Nested` classes
 - Create a test group for each method or feature of the class under test
