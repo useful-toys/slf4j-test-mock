@@ -24,14 +24,18 @@ These classes form the **internal infrastructure** of the mock implementation. *
 ┌─────────────────────────────────────────────────────────────┐
 │                   MockLoggerFactory                         │
 │  ┌──────────────────────────────────────────────────┐       │
-│  │  Map<String, Logger> nameToLogger                │       │
-│  │    - "com.example.Service" → MockLogger          │       │
-│  │    - "com.example.Controller" → MockLogger       │       │
-│  │    - "com.example.Repository" → MockLogger       │       │
+│  │  Map<LoggerKey, Logger> scopedNameToLogger       │       │
+│  │    - (scopeA, "com.example.Service") → MockLogger│       │
+│  │    - (scopeA, "com.example.Controller") → ...    │       │
+│  │    - (scopeB, "com.example.Service") → MockLogger│       │
+│  │    - (null, "com.example.Repository") → ...      │       │
 │  └──────────────────────────────────────────────────┘       │
 │                                                             │
 │  + getLogger(name): Logger                                  │
 │  + getLoggers(): Map<String, Logger>  [static]              │
+│  + setCurrentScopeId(scopeId): void  [static]               │
+│  + getCurrentScopeId(): String  [static]                    │
+│  + clearCurrentScopeId(): void  [static]                    │
 └────────────────────────────┬────────────────────────────────┘
                              │
                              ▼
@@ -85,19 +89,26 @@ These classes form the **internal infrastructure** of the mock implementation. *
 
 ### Internal State
 
-The factory maintains a singleton pattern with an internal map:
+The factory maintains a singleton pattern with an internal scoped cache:
 
 ```java
-Map<String, Logger> nameToLogger = new HashMap<>();
+Map<LoggerKey, Logger> scopedNameToLogger = new ConcurrentHashMap<>();
 ```
 
-This map stores all logger instances created during test execution, keyed by their logger name.
+This map stores all logger instances created during test execution, keyed by a composite key `(scopeId, loggerName)`. The scope ID is managed via a thread-local variable:
+
+```java
+private static final InheritableThreadLocal<String> CURRENT_SCOPE_ID = new InheritableThreadLocal<>();
+```
+
+When a scope is active (set by JUnit extensions), loggers are isolated per scope. When no scope is set (`scopeId == null`), the factory behaves as a global cache, maintaining backward compatibility with tests that don't use extensions.
 
 ### Key Characteristics
 
 *   **Singleton Pattern**: Single factory instance serves all logger requests
-*   **Lazy Logger Creation**: Loggers are created on first request and cached
-*   **Thread-Local Scope**: Not thread-safe, designed for single-threaded test execution
+*   **Lazy Logger Creation**: Loggers are created on first request and cached per scope
+*   **Thread-Local Scope**: Uses `InheritableThreadLocal` to track the current test scope, enabling parallel test isolation
+*   **Backward Compatible**: When no scope is set, behaves as a global cache (suitable for serial execution)
 
 ### Public API
 
@@ -107,9 +118,10 @@ This map stores all logger instances created during test execution, keyed by the
 public Logger getLogger(String name)
 ```
 
-*   Checks if a logger with the given name already exists
+*   Uses the current scope ID (from thread-local) to create a composite key `(scopeId, name)`
+*   Checks if a logger with the composite key already exists
 *   If exists, returns the cached instance
-*   If not, creates a new `MockLogger`, stores it in the map, and returns it
+*   If not, creates a new `MockLogger`, stores it in the scoped cache, and returns it
 
 **For Test Infrastructure** (called by JUnit extensions):
 
@@ -117,9 +129,33 @@ public Logger getLogger(String name)
 public static Map<String, Logger> getLoggers()
 ```
 
-*   Returns an unmodifiable view of all created loggers
-*   Used by JUnit extensions to iterate over all loggers for cleanup or inspection
-*   Example use case: Clearing all logger events between test methods
+*   Returns an unmodifiable view of loggers **in the current scope**
+*   Filters the scoped cache to include only entries matching the current scope ID
+*   Used by JUnit extensions to iterate over loggers for cleanup or inspection within a test
+
+**For Scope Management** (called by JUnit extensions):
+
+```java
+public static void setCurrentScopeId(String scopeId)
+```
+
+*   Sets the scope ID for the current thread (and child threads via `InheritableThreadLocal`)
+*   Typically called with `ExtensionContext.getUniqueId()` at the start of each test
+*   Pass `null` to clear the scope and revert to global cache behavior
+
+```java
+public static String getCurrentScopeId()
+```
+
+*   Returns the current scope ID for the calling thread, or `null` if no scope is active
+
+```java
+public static void clearCurrentScopeId()
+```
+
+*   Clears the scope ID for the current thread
+*   Equivalent to `setCurrentScopeId(null)`
+*   Typically called in `@AfterEach` to clean up scope state
 
 ### Lifecycle
 
@@ -404,21 +440,24 @@ assertEvent(logger, 0, Level.INFO, "User");
 
 ### Event List Per Logger
 
-Each `MockLogger` maintains its own independent event list:
+Each `MockLogger` maintains its own independent event list. With scoped isolation, the same logger name can have multiple instances:
 
 ```
-MockLoggerFactory
-  ├─ "com.example.ServiceA" → MockLogger
+MockLoggerFactory (scoped cache)
+  ├─ (scopeA, "com.example.Service") → MockLogger
   │    └─ loggerEvents: [Event0, Event1, Event2]
   │
-  ├─ "com.example.ServiceB" → MockLogger
-  │    └─ loggerEvents: [Event0, Event1]
+  ├─ (scopeB, "com.example.Service") → MockLogger
+  │    └─ loggerEvents: [Event0, Event1]  (different instance!)
   │
-  └─ "com.example.Controller" → MockLogger
-       └─ loggerEvents: [Event0, Event1, Event2, Event3]
+  ├─ (null, "com.example.Controller") → MockLogger
+  │    └─ loggerEvents: [Event0, Event1, Event2, Event3]
+  │
+  └─ (scopeA, "com.example.Repository") → MockLogger
+       └─ loggerEvents: [Event0]
 ```
 
-Events are **never shared** between loggers. Each logger's list is completely independent.
+Events are **never shared** between logger instances. Each logger's list is completely independent, and loggers in different scopes remain isolated even if they share the same name.
 
 ### Event Indexing
 
@@ -470,6 +509,76 @@ Events can be cleared in three ways:
    }
    ```
 
+## Parallel Test Isolation
+
+### Scope-Based Isolation
+
+When tests execute in parallel using JUnit 5, the scoped cache ensures that loggers with the same name remain isolated between tests:
+
+```java
+// Test A running in Thread-1
+@Test
+void testA() {
+    // Extension sets scopeId = "[engine:junit]/[class:TestA]/[method:testA()]"
+    Logger logger = LoggerFactory.getLogger("MyService");
+    logger.info("Message from A");
+    // Cache key: ("[...TestA...]", "MyService") → MockLogger instance A
+}
+
+// Test B running in Thread-2 (in parallel)
+@Test
+void testB() {
+    // Extension sets scopeId = "[engine:junit]/[class:TestB]/[method:testB()]"
+    Logger logger = LoggerFactory.getLogger("MyService");
+    logger.info("Message from B");
+    // Cache key: ("[...TestB...]", "MyService") → MockLogger instance B
+}
+```
+
+Even though both tests request `"MyService"`, they receive **different `MockLogger` instances** because their scope IDs differ. Each logger maintains its own independent event list, preventing interference.
+
+### Inheritance to Child Threads
+
+The `InheritableThreadLocal` ensures that child threads spawned during a test inherit the parent's scope:
+
+```java
+@Test
+void testWithChildThread() {
+    Logger logger = LoggerFactory.getLogger("test");
+    logger.info("Parent thread");
+    
+    new Thread(() -> {
+        // Child thread inherits scope from parent
+        Logger childLogger = LoggerFactory.getLogger("test");
+        childLogger.info("Child thread");
+        // childLogger == logger (same instance, same scope)
+    }).start();
+}
+```
+
+**Limitation**: Thread pools reuse threads, so worker threads from a pool may not inherit the correct scope. For best results, spawn fresh threads or ensure tests don't rely on thread pools for logging.
+
+### Legacy Tests Without Extensions
+
+Tests that obtain loggers without using JUnit extensions (e.g., via static fields) continue to work but **do not benefit from isolation**:
+
+```java
+class LegacyTest {
+    static final MockLogger logger = (MockLogger) LoggerFactory.getLogger("test");
+    // Obtained before any extension sets scope → scopeId = null
+    // Cache key: (null, "test") → global logger instance
+    
+    @Test void test1() { logger.info("A"); }
+    @Test void test2() { logger.info("B"); }
+    // Both tests share the same logger instance (suitable for serial execution)
+}
+```
+
+If these tests run in parallel, they will interfere with each other. To gain isolation, either:
+
+1.  Add `@ExtendWith(MockLoggerExtension.class)` and use `@Slf4jMock` for injection, or
+2.  Obtain the logger in `@BeforeEach` instead of as a static field
+
 ## Integration with JUnit Extensions
 
 The mock logger implementation provides hooks for JUnit 5 extensions:
@@ -514,10 +623,14 @@ void clearLogs() {
 
 ### Logger Registry
 
-The `nameToLogger` map in `MockLoggerFactory` retains all created loggers for the lifetime of the test run. This is typically not an issue since:
+The `scopedNameToLogger` map in `MockLoggerFactory` retains all created loggers for the lifetime of the test run. With scope isolation:
 
-*   Logger names are finite and reused across tests
+*   The same logger name can have multiple instances (one per scope)
+*   Each scope typically corresponds to a single test execution
+*   Memory usage increases proportionally to the number of parallel tests × unique logger names
 *   Each logger instance is lightweight (just a name and configuration flags)
+
+In practice, this is not a concern for typical test suites since scopes are transient and logger instances are small.
 
 ## Design Rationale
 
@@ -548,16 +661,21 @@ Current implementation has `mdc: null` in events. MDC support is planned but not
 
 ## Summary
 
-The mock logger implementation provides a clean separation of concerns:
+The mock logger implementation provides a clean separation of concerns with support for parallel test isolation:
 
 | Class | Responsibility | Used Directly in Tests? |
 |-------|----------------|------------------------|
-| `MockLoggerFactory` | Manages logger registry | ❌ No (SLF4J calls it) |
-| `MockLogger` | Captures log events | ❌ No (use `AssertLogger`) |
+| `MockLoggerFactory` | Manages scoped logger registry | ❌ No (SLF4J calls it) |
+| `MockLogger` | Captures log events per scope | ❌ No (use `AssertLogger`) |
 | `MockLoggerEvent` | Stores event details | ❌ No (use `AssertLogger`) |
 | `AssertLogger` | Assertion API | ✅ Yes (this is the test API) |
 
-**Key Takeaway**: The internal implementation classes (`MockLoggerFactory`, `MockLogger`, `MockLoggerEvent`) provide the infrastructure for capturing logs, but tests should **only** interact with them through the `AssertLogger` API. This maintains clean separation between implementation and test interface.
+**Key Takeaways**:
+
+*   The internal implementation classes (`MockLoggerFactory`, `MockLogger`, `MockLoggerEvent`) provide the infrastructure for capturing logs
+*   Tests should **only** interact with them through the `AssertLogger` API
+*   When using JUnit extensions (`@WithMockLogger`, `@Slf4jMock`), loggers are automatically isolated per test for safe parallel execution
+*   Legacy tests without extensions continue to work in serial execution mode
 
 ## References
 
@@ -565,4 +683,5 @@ The mock logger implementation provides a clean separation of concerns:
 *   [SLF4J Message Formatting](https://www.slf4j.org/faq.html#logging_performance)
 *   [TDR-0001: In-Memory Event Storage](TDR-0001-in-memory-event-storage.md)
 *   [TDR-0002: Use of JUnit5 Assertions](TDR-0002-use-of-junit5-assertions.md)
+*   [TDR-0006: Parallel Test Isolation](TDR-0006-parallel-test-isolation.md)
 *   [SLF4J API Integration Guide](slf4j-api-integration.md)

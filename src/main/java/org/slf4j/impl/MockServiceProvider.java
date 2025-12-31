@@ -73,7 +73,7 @@ public class MockServiceProvider implements SLF4JServiceProvider {
 
     @Override
     public void initialize() {
-        loggerFactory = new MockLoggerFactory();
+        loggerFactory = MockLoggerFactory.getInstance();
         markerFactory = StaticMarkerBinder.SINGLETON.getMarkerFactory();
         mdcAdapter = StaticMDCBinder.SINGLETON.getMDCA();
     }

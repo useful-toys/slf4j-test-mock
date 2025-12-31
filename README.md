@@ -13,7 +13,7 @@ A comprehensive mock implementation of the SLF4J logging framework designed spec
 - **Level Control**: Fine-grained control over which log levels are enabled during tests
 - **Marker Support**: Full support for SLF4J markers in logging and assertions
 - **MDC Support**: Mock implementation of Mapped Diagnostic Context (MDC) including SLF4J 2.0 Deque methods
-- **Thread-Safe**: Safe for use in single-threaded test environments
+- **Parallel Test Isolation (JUnit 5)**: When used with `@WithMockLogger` and/or `@WithMockLoggerDebug`, logger instances are isolated per test execution to avoid interference when two parallel tests use the same logger name
 - **Java 8+ Compatible**: Works with Java 8 and higher versions
 
 ## SLF4J Compatibility
@@ -94,6 +94,36 @@ class MyServiceTest {
 - Events are automatically cleared before each test
 - No manual setup or teardown code required
 - Logger is ready to use immediately
+
+### Parallel Execution Limitations (and Mitigations)
+
+The library isolates logger instances per test execution when you use `@WithMockLogger` and/or `@WithMockLoggerDebug`.
+This prevents interference when two parallel tests request the same logger name **on the test thread**.
+
+However, there are important cases where parallel execution can still produce logger conflicts:
+
+- **Thread pools / `CompletableFuture` / `ExecutorService` / `parallelStream`**: scope isolation is based on a thread-local scope.
+    `InheritableThreadLocal` only propagates to threads created *after* the scope is set.
+    Thread pools reuse pre-existing threads, so asynchronous logging may run with `scopeId == null` (global scope), mixing events from parallel tests.
+- **Legacy static loggers** obtained outside the extension lifecycle (e.g., `static final Logger logger = LoggerFactory.getLogger("shared")`):
+    these are created with `scopeId == null` and remain shared globally.
+
+If you hit one of these scenarios, choose one of the following mitigation strategies:
+
+**Option A — Make the affected tests serial** (recommended when you cannot change the code under test)
+
+- Use JUnit 5 to prevent parallel execution for a class or method, e.g. `@Execution(ExecutionMode.SAME_THREAD)`.
+- Or use `@ResourceLock("logger:shared")` to serialize only tests sharing a known resource.
+
+**Option B — Use unique logger names per test** (only when you control the logger name)
+
+- If the code under test allows configuring the logger name (or you can inject a name), use a unique value per test/class.
+- This avoids collisions even if asynchronous work logs from a global scope.
+
+**Option C — Keep parallel execution, but avoid asserting exact log isolation**
+
+- Prefer asserting functional behavior for highly asynchronous code.
+- If log assertions are essential, run only those log-asserting tests in serial (Option A) or at a higher test level.
 
 **Configuration Options:**
 
