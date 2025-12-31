@@ -185,7 +185,7 @@ class MockLoggerDebugExtensionUnitTest {
         }
 
         @SuppressWarnings("unused")
-        private static void oneString(final String value) {
+        private static void oneString(final String ignored) {
             // no-op
         }
     }
