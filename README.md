@@ -220,6 +220,9 @@ The `AssertLogger` utility class provides comprehensive assertion methods for ve
 - `assertEventHasArgument(Logger, int, Object)` - Assert event has the expected argument in any argument position
 - `assertHasEventWithArgument(Logger, Object)` - Assert any event has the expected argument in any argument position
 - `assertHasEventHasArgument(Logger, Object)` - Alias for `assertHasEventWithArgument(Logger, Object)`
+- `assertEventNotHasArgument(Logger, int, Object)` - Assert event does not contain the unexpected argument
+- `assertEventNotWithArgument(Logger, int, int, Object)` - Assert event does not have the unexpected argument at the specified argument index
+- `assertEventNotWithArguments(Logger, int, Object...)` - Assert event does not have exactly the unexpected arguments
 
 **Argument Count Assertions:**
 - `assertEventHasArgumentCount(Logger, int, int)` - Assert event has exactly N arguments
