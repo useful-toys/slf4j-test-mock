@@ -365,10 +365,10 @@ class MockLoggerDebugExtensionUnitTest {
     private static final class MultiLevelNested {
         private final Logger logger = LoggerFactory.getLogger("unit.test.multilevel");
 
-        private final class MiddleNested {
+        private static final class MiddleNested {
             // this$0 points to MultiLevelNested
 
-            private final class InnerNested {
+            private static final class InnerNested {
                 // this$0 points to MiddleNested
             }
         }
