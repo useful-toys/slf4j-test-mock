@@ -21,6 +21,7 @@ import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 import org.slf4j.impl.MockLogger;
 import org.slf4j.impl.MockLoggerFactory;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
@@ -77,10 +78,10 @@ public class MockLoggerDebugExtension implements InvocationInterceptor {
         try {
             invocation.proceed();
         } catch (final AssertionError e) {
-            // Find and print all MockLogger instances in test parameters
-            final List<MockLogger> mockLoggers = findMockLoggers(invocationContext);
+            // Find and print all MockLogger instances in test parameters and fields
+            final List<MockLogger> mockLoggers = findMockLoggers(invocationContext, extensionContext);
 
-            // If none found in parameters, fall back to collecting all loggers from the factory
+            // If none found in parameters or fields, fall back to collecting all loggers from the factory
             if (mockLoggers.isEmpty()) {
                 mockLoggers.addAll(findMockLoggersFromFactory());
             }
@@ -94,15 +95,21 @@ public class MockLoggerDebugExtension implements InvocationInterceptor {
     }
 
     /**
-     * Finds all MockLogger instances in the test method's parameters.
+     * Finds all MockLogger instances in the test method's parameters and test class fields.
      *
-     * @param context the invocation context containing test parameters
-     * @return a list of MockLogger instances found in the parameters
+     * @param invocationContext the invocation context containing test parameters
+     * @param extensionContext  the extension context containing test instance
+     * @return a list of MockLogger instances found in the parameters and fields
      */
-    private static List<MockLogger> findMockLoggers(final ReflectiveInvocationContext<Method> context) {
+    private static List<MockLogger> findMockLoggers(
+            final ReflectiveInvocationContext<Method> invocationContext,
+            final ExtensionContext extensionContext) {
+        
         final List<MockLogger> mockLoggers = new ArrayList<>(5);
-        final List<Object> arguments = context.getArguments();
-        final Method method = context.getExecutable();
+
+        // First, check method parameters
+        final List<Object> arguments = invocationContext.getArguments();
+        final Method method = invocationContext.getExecutable();
         final Parameter[] parameters = method.getParameters();
 
         for (int i = 0; i < parameters.length && i < arguments.size(); i++) {
@@ -112,7 +119,71 @@ public class MockLoggerDebugExtension implements InvocationInterceptor {
             }
         }
 
+        // Then, check test instance fields (including nested test classes and inherited fields)
+        extensionContext.getTestInstance().ifPresent(testInstance -> {
+            findMockLoggersInFieldsRecursive(testInstance, mockLoggers);
+        });
+
         return mockLoggers;
+    }
+
+    /**
+     * Recursively finds MockLogger instances in all outer classes of nested test classes.
+     * This handles multiple levels of @Nested classes (e.g., Outer > Middle > Inner).
+     *
+     * @param testInstance the test instance to start searching from
+     * @param mockLoggers  the list to add found MockLogger instances to
+     */
+    private static void findMockLoggersInFieldsRecursive(final Object testInstance, final List<MockLogger> mockLoggers) {
+        // Search fields in the current instance (including inherited fields)
+        findMockLoggersInFields(testInstance, mockLoggers);
+        
+        // For @Nested test classes, recursively search in outer classes
+        Object currentInstance = testInstance;
+        while (currentInstance != null) {
+            try {
+                final Field outerField = currentInstance.getClass().getDeclaredField("this$0");
+                outerField.setAccessible(true);
+                currentInstance = outerField.get(currentInstance);
+                if (currentInstance != null) {
+                    findMockLoggersInFields(currentInstance, mockLoggers);
+                }
+            } catch (final NoSuchFieldException e) {
+                // Not a nested class or reached the outermost class
+                break;
+            } catch (final IllegalAccessException e) {
+                // Cannot access outer instance
+                break;
+            }
+        }
+    }
+
+    /**
+     * Finds MockLogger instances in the fields of a test instance, including inherited fields.
+     *
+     * @param testInstance the test instance to search
+     * @param mockLoggers  the list to add found MockLogger instances to
+     */
+    private static void findMockLoggersInFields(final Object testInstance, final List<MockLogger> mockLoggers) {
+        Class<?> clazz = testInstance.getClass();
+        
+        // Search fields in the current class and all superclasses
+        while (clazz != null && clazz != Object.class) {
+            for (final Field field : clazz.getDeclaredFields()) {
+                if (org.slf4j.Logger.class.isAssignableFrom(field.getType())) {
+                    try {
+                        field.setAccessible(true);
+                        final Object value = field.get(testInstance);
+                        if (value instanceof MockLogger && !mockLoggers.contains(value)) {
+                            mockLoggers.add((MockLogger) value);
+                        }
+                    } catch (final IllegalAccessException e) {
+                        // Ignore inaccessible fields
+                    }
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
     }
 
     /**

@@ -50,6 +50,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("MockLoggerDebugExtension (Unit)")
 class MockLoggerDebugExtensionUnitTest {
 
+    /**
+     * Unit tests for {@link MockLoggerDebugExtension}.
+     * <p>
+     * Tests validate that MockLoggerDebugExtension correctly finds and prints logged events
+     * from MockLogger instances in various test contexts when assertions fail.
+     * <p>
+     * <b>Coverage:</b>
+     * <ul>
+     *   <li><b>No Debug Output on Success:</b> Verifies no output printed when test passes</li>
+     *   <li><b>Logger as Method Parameter:</b> Finds MockLogger passed as test method argument</li>
+     *   <li><b>Fallback to Factory:</b> Uses MockLoggerFactory when no parameter loggers found</li>
+     *   <li><b>No Output When No Logger Exists:</b> Handles cases with no loggers gracefully</li>
+     *   <li><b>Logger as Class Field:</b> Discovers MockLogger in test class fields via reflection</li>
+     *   <li><b>Logger in Outer Class (@Nested):</b> Finds logger in outer class via synthetic this$0 field</li>
+     *   <li><b>Logger in Inherited Fields:</b> Searches superclasses for MockLogger fields</li>
+     *   <li><b>Multiple Loggers:</b> Finds and prints events from multiple MockLogger instances</li>
+     * </ul>
+     */
+
     private PrintStream originalErr;
     private ByteArrayOutputStream errCapture;
 
@@ -167,6 +186,111 @@ class MockLoggerDebugExtensionUnitTest {
 
             assertEquals("", readErr(), "should not print anything when no MockLogger is found");
         }
+
+        @Test
+        @DisplayName("should find MockLogger in test class field")
+        void shouldFindMockLoggerInTestClassField() throws Throwable {
+            final MockLoggerDebugExtension extension = new MockLoggerDebugExtension();
+
+            final TestClassWithField testInstance = new TestClassWithField();
+            testInstance.logger.info("field event 1");
+            testInstance.logger.warn("field event 2");
+
+            final InvocationInterceptor.Invocation<Void> invocation = () -> {
+                throw new AssertionError("expected failure");
+            };
+
+            final Method method = DummyMethods.class.getDeclaredMethod("noArgs");
+            final ReflectiveInvocationContext<Method> invocationContext = newInvocationContext(method, Collections.emptyList());
+            final ExtensionContext extensionContext = newExtensionContextWithInstance("field test", testInstance);
+
+            assertThrows(AssertionError.class,
+                () -> extension.interceptTestMethod(invocation, invocationContext, extensionContext),
+                "should rethrow AssertionError");
+
+            final String err = readErr();
+            assertTrue(err.contains("field event 1"), "should find logger in test class field");
+            assertTrue(err.contains("field event 2"), "should print all events from field logger");
+            assertTrue(err.contains("Total events: 2"), "should count events correctly");
+        }
+
+        @Test
+        @DisplayName("should find MockLogger in outer class of @Nested test")
+        void shouldFindMockLoggerInOuterClassOfNestedTest() throws Throwable {
+            final MockLoggerDebugExtension extension = new MockLoggerDebugExtension();
+
+            final OuterTestClass outerInstance = new OuterTestClass();
+            outerInstance.logger.info("outer logger event");
+
+            final OuterTestClass.InnerTestClass innerInstance = outerInstance.new InnerTestClass();
+
+            final InvocationInterceptor.Invocation<Void> invocation = () -> {
+                throw new AssertionError("expected failure");
+            };
+
+            final Method method = DummyMethods.class.getDeclaredMethod("noArgs");
+            final ReflectiveInvocationContext<Method> invocationContext = newInvocationContext(method, Collections.emptyList());
+            final ExtensionContext extensionContext = newExtensionContextWithInstance("nested test", innerInstance);
+
+            assertThrows(AssertionError.class,
+                () -> extension.interceptTestMethod(invocation, invocationContext, extensionContext),
+                "should rethrow AssertionError");
+
+            final String err = readErr();
+            assertTrue(err.contains("outer logger event"), "should find logger in outer class via this$0");
+        }
+
+        @Test
+        @DisplayName("should find MockLogger in inherited field from base class")
+        void shouldFindMockLoggerInInheritedField() throws Throwable {
+            final MockLoggerDebugExtension extension = new MockLoggerDebugExtension();
+
+            final DerivedTestClass testInstance = new DerivedTestClass();
+            testInstance.logger.info("inherited logger event");
+
+            final InvocationInterceptor.Invocation<Void> invocation = () -> {
+                throw new AssertionError("expected failure");
+            };
+
+            final Method method = DummyMethods.class.getDeclaredMethod("noArgs");
+            final ReflectiveInvocationContext<Method> invocationContext = newInvocationContext(method, Collections.emptyList());
+            final ExtensionContext extensionContext = newExtensionContextWithInstance("inheritance test", testInstance);
+
+            assertThrows(AssertionError.class,
+                () -> extension.interceptTestMethod(invocation, invocationContext, extensionContext),
+                "should rethrow AssertionError");
+
+            final String err = readErr();
+            assertTrue(err.contains("inherited logger event"), "should find logger in base class via getSuperclass()");
+        }
+
+        @Test
+        @DisplayName("should find multiple MockLoggers in test class fields")
+        void shouldFindMultipleMockLoggersInFields() throws Throwable {
+            final MockLoggerDebugExtension extension = new MockLoggerDebugExtension();
+
+            final TestClassWithMultipleLoggers testInstance = new TestClassWithMultipleLoggers();
+            testInstance.logger1.info("logger1 event");
+            testInstance.logger2.warn("logger2 event");
+
+            final InvocationInterceptor.Invocation<Void> invocation = () -> {
+                throw new AssertionError("expected failure");
+            };
+
+            final Method method = DummyMethods.class.getDeclaredMethod("noArgs");
+            final ReflectiveInvocationContext<Method> invocationContext = newInvocationContext(method, Collections.emptyList());
+            final ExtensionContext extensionContext = newExtensionContextWithInstance("multiple loggers test", testInstance);
+
+            assertThrows(AssertionError.class,
+                () -> extension.interceptTestMethod(invocation, invocationContext, extensionContext),
+                "should rethrow AssertionError");
+
+            final String err = readErr();
+            assertTrue(err.contains("logger1 event"), "should find first logger in fields");
+            assertTrue(err.contains("logger2 event"), "should find second logger in fields");
+            assertTrue(err.contains("Logger: unit.test.logger1"), "should display logger1 name");
+            assertTrue(err.contains("Logger: unit.test.logger2"), "should display logger2 name");
+        }
     }
 
     private static final class DummyMethods {
@@ -187,6 +311,66 @@ class MockLoggerDebugExtensionUnitTest {
         @SuppressWarnings("unused")
         private static void oneString(final String ignored) {
             // no-op
+        }
+    }
+
+    /**
+     * Test class with a MockLogger field to validate field search functionality.
+     */
+    private static final class TestClassWithField {
+        private final Logger logger = LoggerFactory.getLogger("unit.test.field");
+    }
+
+    /**
+     * Test class with multiple MockLogger fields to validate multiple logger detection.
+     */
+    private static final class TestClassWithMultipleLoggers {
+        private final Logger logger1 = LoggerFactory.getLogger("unit.test.logger1");
+        private final Logger logger2 = LoggerFactory.getLogger("unit.test.logger2");
+    }
+
+    /**
+     * Base test class with a MockLogger field to validate inherited field search.
+     */
+    private static class BaseTestClass {
+        protected final Logger logger = LoggerFactory.getLogger("unit.test.inherited");
+    }
+
+    /**
+     * Derived test class extending BaseTestClass to validate inheritance.
+     */
+    private static final class DerivedTestClass extends BaseTestClass {
+        // Inherits logger field from BaseTestClass
+    }
+
+    /**
+     * Outer test class with a MockLogger field and nested test class.
+     * Used to validate @Nested class logger detection via this$0 field.
+     */
+    private static final class OuterTestClass {
+        private final Logger logger = LoggerFactory.getLogger("unit.test.outer");
+
+        /**
+         * Inner test class (simulates @Nested test structure).
+         * The compiler generates a synthetic this$0 field pointing to outer instance.
+         */
+        private final class InnerTestClass {
+            // this$0 field is synthetic, added by compiler
+        }
+    }
+
+    /**
+     * Multi-level nested test classes to validate recursive outer class search.
+     */
+    private static final class MultiLevelNested {
+        private final Logger logger = LoggerFactory.getLogger("unit.test.multilevel");
+
+        private final class MiddleNested {
+            // this$0 points to MultiLevelNested
+
+            private final class InnerNested {
+                // this$0 points to MiddleNested
+            }
         }
     }
 
@@ -265,8 +449,34 @@ class MockLoggerDebugExtensionUnitTest {
                 switch (invokedMethod.getName()) {
                     case "getDisplayName":
                         return displayName;
+                    case "getTestInstance":
+                        return Optional.empty();
                     case "toString":
                         return "ExtensionContextProxy";
+                    case "hashCode":
+                        return System.identityHashCode(proxy);
+                    case "equals":
+                        return proxy == args[0];
+                    default:
+                        return defaultValue(invokedMethod.getReturnType());
+                }
+            }
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ExtensionContext newExtensionContextWithInstance(final String displayName, final Object testInstance) {
+        return (ExtensionContext) Proxy.newProxyInstance(
+            MockLoggerDebugExtensionUnitTest.class.getClassLoader(),
+            new Class<?>[]{ExtensionContext.class},
+            (proxy, invokedMethod, args) -> {
+                switch (invokedMethod.getName()) {
+                    case "getDisplayName":
+                        return displayName;
+                    case "getTestInstance":
+                        return Optional.of(testInstance);
+                    case "toString":
+                        return "ExtensionContextProxyWithInstance";
                     case "hashCode":
                         return System.identityHashCode(proxy);
                     case "equals":
