@@ -359,21 +359,6 @@ class MockLoggerDebugExtensionUnitTest {
         }
     }
 
-    /**
-     * Multi-level nested test classes to validate recursive outer class search.
-     */
-    private static final class MultiLevelNested {
-        private final Logger logger = LoggerFactory.getLogger("unit.test.multilevel");
-
-        private static final class MiddleNested {
-            // this$0 points to MultiLevelNested
-
-            private static final class InnerNested {
-                // this$0 points to MiddleNested
-            }
-        }
-    }
-
     private void captureSystemErr() {
         originalErr = System.err;
         errCapture = new ByteArrayOutputStream();
