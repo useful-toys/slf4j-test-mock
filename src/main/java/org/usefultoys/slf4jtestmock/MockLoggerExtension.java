@@ -86,8 +86,27 @@ public class MockLoggerExtension implements
         final Field[] fields = testClass.getDeclaredFields();
         for (final Field field : fields) {
             if (isLoggerField(field)) {
-                final Logger logger = createAndConfigureLogger(field, testClass, field.getName());
-                setField(field, testInstance, logger);
+                field.setAccessible(true);
+                try {
+                    final Object currentValue = field.get(testInstance);
+                    if (currentValue == null) {
+                        // Field is null - skip it (should have been initialized in postProcessTestInstance)
+                        continue;
+                    }
+                    // Field already has a value - validate it's a MockLogger
+                    if (field.getType().equals(Logger.class) && !(currentValue instanceof MockLogger)) {
+                        throw new ExtensionConfigurationException(
+                            "Logger field must be a MockLogger instance, but got: " + currentValue.getClass().getName()
+                        );
+                    }
+                    // Reset the logger for the new test
+                    if (currentValue instanceof MockLogger) {
+                        ((MockLogger) currentValue).clearEvents();
+                        applyConfig((MockLogger) currentValue, field);
+                    }
+                } catch (IllegalAccessException e) {
+                    throw new ExtensionConfigurationException("Could not read logger field: " + field, e);
+                }
             }
         }
     }
@@ -108,6 +127,10 @@ public class MockLoggerExtension implements
 
     /**
      * Resets loggers specified in the {@link WithMockLogger#reset()} attribute.
+     * <p>
+     * This method resets loggers across all scopes to ensure compatibility with tests
+     * that may create loggers before the extension sets the scope id.
+     * </p>
      *
      * @param testClass The test class to check for the annotation.
      */
@@ -115,9 +138,11 @@ public class MockLoggerExtension implements
         final WithMockLogger withMockLogger = testClass.getAnnotation(WithMockLogger.class);
         if (withMockLogger != null) {
             for (final String loggerName : withMockLogger.reset()) {
-                final Logger logger = LoggerFactory.getLogger(loggerName);
-                if (logger instanceof MockLogger) {
-                    ((MockLogger) logger).clearEvents();
+                // Reset all logger instances with this name, regardless of scope
+                for (final Logger logger : MockLoggerFactory.getLoggersByName(loggerName)) {
+                    if (logger instanceof MockLogger) {
+                        ((MockLogger) logger).clearEvents();
+                    }
                 }
             }
         }
@@ -333,6 +358,13 @@ public class MockLoggerExtension implements
             field.setAccessible(true);
             if (field.getType().equals(MockLogger.class) && logger instanceof MockLogger) {
                 field.set(instance, (MockLogger) logger);
+            } else if (field.getType().equals(Logger.class)) {
+                if (!(logger instanceof MockLogger)) {
+                    throw new ExtensionConfigurationException(
+                        "Logger field must be a MockLogger instance, but got: " + logger.getClass().getName()
+                    );
+                }
+                field.set(instance, logger);
             } else {
                 field.set(instance, logger);
             }

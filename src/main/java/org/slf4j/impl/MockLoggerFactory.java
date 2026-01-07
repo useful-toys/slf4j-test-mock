@@ -145,6 +145,26 @@ public class MockLoggerFactory implements ILoggerFactory {
     }
 
     /**
+     * Returns all {@link MockLogger} instances with the given name, regardless of scope.
+     * <p>
+     * This is a test helper which allows resetting loggers that may have been created
+     * in different scopes (e.g., before the test framework set the current scope id).
+     *
+     * @param loggerName the logger name to search for
+     * @return list of Logger instances with the given name across all scopes
+     */
+    @AIGenerated("copilot")
+    public static java.util.List<Logger> getLoggersByName(final String loggerName) {
+        final java.util.List<Logger> result = new java.util.ArrayList<>();
+        for (final Map.Entry<LoggerKey, Logger> entry : instance.scopedNameToLogger.entrySet()) {
+            if (Objects.equals(loggerName, entry.getKey().loggerName)) {
+                result.add(entry.getValue());
+            }
+        }
+        return result;
+    }
+
+    /**
      * Key for caching loggers.
      */
     @AIGenerated("copilot")

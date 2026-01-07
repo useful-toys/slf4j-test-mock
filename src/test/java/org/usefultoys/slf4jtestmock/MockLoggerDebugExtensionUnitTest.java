@@ -391,10 +391,10 @@ class MockLoggerDebugExtensionUnitTest {
             instanceField.setAccessible(true);
             final Object instance = instanceField.get(null);
 
-            final Field mapField = MockLoggerFactory.class.getDeclaredField("nameToLogger");
+            final Field mapField = MockLoggerFactory.class.getDeclaredField("scopedNameToLogger");
             mapField.setAccessible(true);
             @SuppressWarnings("unchecked")
-            final Map<String, org.slf4j.Logger> map = (Map<String, org.slf4j.Logger>) mapField.get(instance);
+            final Map<?, org.slf4j.Logger> map = (Map<?, org.slf4j.Logger>) mapField.get(instance);
             map.clear();
         } catch (final ReflectiveOperationException e) {
             throw new IllegalStateException("should be able to clear MockLoggerFactory for test isolation", e);
