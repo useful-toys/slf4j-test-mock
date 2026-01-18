@@ -22,6 +22,7 @@ import org.opentest4j.AssertionFailedError;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.impl.MockLoggerEvent.Level;
+import org.usefultoys.slf4jtestmock.AIGenerated;
 
 import java.util.List;
 
@@ -96,6 +97,51 @@ class MockLoggerTest {
         assertTrue(logger.isDebugEnabled());
         assertTrue(logger.isInfoEnabled());
         assertTrue(logger.isWarnEnabled());
+        assertTrue(logger.isErrorEnabled());
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should correctly set log levels using setLevel")
+    void shouldCorrectlySetLogLevelsUsingSetLevel() {
+        // TRACE level: all enabled
+        logger.setLevel(Level.TRACE);
+        assertTrue(logger.isTraceEnabled());
+        assertTrue(logger.isDebugEnabled());
+        assertTrue(logger.isInfoEnabled());
+        assertTrue(logger.isWarnEnabled());
+        assertTrue(logger.isErrorEnabled());
+
+        // DEBUG level: trace disabled, rest enabled
+        logger.setLevel(Level.DEBUG);
+        assertFalse(logger.isTraceEnabled());
+        assertTrue(logger.isDebugEnabled());
+        assertTrue(logger.isInfoEnabled());
+        assertTrue(logger.isWarnEnabled());
+        assertTrue(logger.isErrorEnabled());
+
+        // INFO level: trace/debug disabled, rest enabled
+        logger.setLevel(Level.INFO);
+        assertFalse(logger.isTraceEnabled());
+        assertFalse(logger.isDebugEnabled());
+        assertTrue(logger.isInfoEnabled());
+        assertTrue(logger.isWarnEnabled());
+        assertTrue(logger.isErrorEnabled());
+
+        // WARN level: trace/debug/info disabled, rest enabled
+        logger.setLevel(Level.WARN);
+        assertFalse(logger.isTraceEnabled());
+        assertFalse(logger.isDebugEnabled());
+        assertFalse(logger.isInfoEnabled());
+        assertTrue(logger.isWarnEnabled());
+        assertTrue(logger.isErrorEnabled());
+
+        // ERROR level: error only enabled
+        logger.setLevel(Level.ERROR);
+        assertFalse(logger.isTraceEnabled());
+        assertFalse(logger.isDebugEnabled());
+        assertFalse(logger.isInfoEnabled());
+        assertFalse(logger.isWarnEnabled());
         assertTrue(logger.isErrorEnabled());
     }
 
@@ -789,3 +835,4 @@ class MockLoggerTest {
         assertEquals(0, logger.getEventCount(), "should remain 0 after clearing empty list");
     }
 }
+

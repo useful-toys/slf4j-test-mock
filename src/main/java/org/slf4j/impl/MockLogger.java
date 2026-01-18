@@ -88,6 +88,48 @@ public class MockLogger implements Logger {
     @Setter
     private boolean stderrEnabled = false;
 
+    public void setLevel(Level level) {
+        switch (level) {
+            case TRACE:
+                traceEnabled = true;
+                debugEnabled = true;
+                infoEnabled = true;
+                warnEnabled = true;
+                errorEnabled = true;
+                break;
+            case DEBUG:
+                traceEnabled = false;
+                debugEnabled = true;
+                infoEnabled = true;
+                warnEnabled = true;
+                errorEnabled = true;
+                break;
+            case INFO:
+                traceEnabled = false;
+                debugEnabled = false;
+                infoEnabled = true;
+                warnEnabled = true;
+                errorEnabled = true;
+                break;
+            case WARN:
+                traceEnabled = false;
+                debugEnabled = false;
+                infoEnabled = false;
+                warnEnabled = true;
+                errorEnabled = true;
+                break;
+            case ERROR:
+                traceEnabled = false;
+                debugEnabled = false;
+                infoEnabled = false;
+                warnEnabled = false;
+                errorEnabled = true;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid level: " + level);
+        }
+    }
+
     private final List<MockLoggerEvent> loggerEvents = new ArrayList<>();
 
     /**
