@@ -65,7 +65,10 @@ public class MockLoggerEvent {
      * Represents the logging level of an event.
      */
     public enum Level {
-
+        /**
+         * Logger completely disabled
+         */
+        NONE,
         /**
          * Error level.
          */

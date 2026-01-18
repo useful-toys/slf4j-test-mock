@@ -102,47 +102,284 @@ class MockLoggerTest {
 
     @Test
     @AIGenerated("copilot")
-    @DisplayName("Should correctly set log levels using setLevel")
-    void shouldCorrectlySetLogLevelsUsingSetLevel() {
-        // TRACE level: all enabled
+    @DisplayName("Should correctly set log levels using setLevel with TRACE level")
+    void shouldSetTraceLevel() {
+        // Given - start with all disabled
+        logger.setLevel(Level.ERROR);
+
+        // When
+        logger.setLevel(Level.TRACE);
+
+        // Then - all levels should be enabled
+        assertTrue(logger.isTraceEnabled(), "TRACE should be enabled when level is TRACE");
+        assertTrue(logger.isDebugEnabled(), "DEBUG should be enabled when level is TRACE");
+        assertTrue(logger.isInfoEnabled(), "INFO should be enabled when level is TRACE");
+        assertTrue(logger.isWarnEnabled(), "WARN should be enabled when level is TRACE");
+        assertTrue(logger.isErrorEnabled(), "ERROR should be enabled when level is TRACE");
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should correctly set log levels using setLevel with DEBUG level")
+    void shouldSetDebugLevel() {
+        // When
+        logger.setLevel(Level.DEBUG);
+
+        // Then - TRACE disabled, rest enabled
+        assertFalse(logger.isTraceEnabled(), "TRACE should be disabled when level is DEBUG");
+        assertTrue(logger.isDebugEnabled(), "DEBUG should be enabled when level is DEBUG");
+        assertTrue(logger.isInfoEnabled(), "INFO should be enabled when level is DEBUG");
+        assertTrue(logger.isWarnEnabled(), "WARN should be enabled when level is DEBUG");
+        assertTrue(logger.isErrorEnabled(), "ERROR should be enabled when level is DEBUG");
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should correctly set log levels using setLevel with INFO level")
+    void shouldSetInfoLevel() {
+        // When
+        logger.setLevel(Level.INFO);
+
+        // Then - TRACE/DEBUG disabled, rest enabled
+        assertFalse(logger.isTraceEnabled(), "TRACE should be disabled when level is INFO");
+        assertFalse(logger.isDebugEnabled(), "DEBUG should be disabled when level is INFO");
+        assertTrue(logger.isInfoEnabled(), "INFO should be enabled when level is INFO");
+        assertTrue(logger.isWarnEnabled(), "WARN should be enabled when level is INFO");
+        assertTrue(logger.isErrorEnabled(), "ERROR should be enabled when level is INFO");
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should correctly set log levels using setLevel with WARN level")
+    void shouldSetWarnLevel() {
+        // When
+        logger.setLevel(Level.WARN);
+
+        // Then - TRACE/DEBUG/INFO disabled, rest enabled
+        assertFalse(logger.isTraceEnabled(), "TRACE should be disabled when level is WARN");
+        assertFalse(logger.isDebugEnabled(), "DEBUG should be disabled when level is WARN");
+        assertFalse(logger.isInfoEnabled(), "INFO should be disabled when level is WARN");
+        assertTrue(logger.isWarnEnabled(), "WARN should be enabled when level is WARN");
+        assertTrue(logger.isErrorEnabled(), "ERROR should be enabled when level is WARN");
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should correctly set log levels using setLevel with ERROR level")
+    void shouldSetErrorLevel() {
+        // When
+        logger.setLevel(Level.ERROR);
+
+        // Then - only ERROR enabled
+        assertFalse(logger.isTraceEnabled(), "TRACE should be disabled when level is ERROR");
+        assertFalse(logger.isDebugEnabled(), "DEBUG should be disabled when level is ERROR");
+        assertFalse(logger.isInfoEnabled(), "INFO should be disabled when level is ERROR");
+        assertFalse(logger.isWarnEnabled(), "WARN should be disabled when level is ERROR");
+        assertTrue(logger.isErrorEnabled(), "ERROR should be enabled when level is ERROR");
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should disable all levels when setLevel is called with Level.NONE")
+    void shouldDisableAllLevelsWhenSetLevelNone() {
+        // Given - all levels enabled
         logger.setLevel(Level.TRACE);
         assertTrue(logger.isTraceEnabled());
-        assertTrue(logger.isDebugEnabled());
-        assertTrue(logger.isInfoEnabled());
-        assertTrue(logger.isWarnEnabled());
-        assertTrue(logger.isErrorEnabled());
 
-        // DEBUG level: trace disabled, rest enabled
-        logger.setLevel(Level.DEBUG);
-        assertFalse(logger.isTraceEnabled());
-        assertTrue(logger.isDebugEnabled());
-        assertTrue(logger.isInfoEnabled());
-        assertTrue(logger.isWarnEnabled());
-        assertTrue(logger.isErrorEnabled());
+        // When
+        logger.setLevel(Level.NONE);
 
-        // INFO level: trace/debug disabled, rest enabled
+        // Then - all levels should be disabled
+        assertFalse(logger.isTraceEnabled(), "TRACE should be disabled when level is NONE");
+        assertFalse(logger.isDebugEnabled(), "DEBUG should be disabled when level is NONE");
+        assertFalse(logger.isInfoEnabled(), "INFO should be disabled when level is NONE");
+        assertFalse(logger.isWarnEnabled(), "WARN should be disabled when level is NONE");
+        assertFalse(logger.isErrorEnabled(), "ERROR should be disabled when level is NONE");
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should transition between all levels correctly with setLevel")
+    void shouldTransitionBetweenAllLevelsCorrectly() {
+        // Cycle through all standard levels
+        final Level[] levels = {Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR, Level.NONE};
+
+        for (final Level level : levels) {
+            // When
+            logger.setLevel(level);
+
+            // Then - verify the level is set correctly by checking that the level itself is enabled
+            switch (level) {
+                case TRACE:
+                    assertTrue(logger.isTraceEnabled(), "TRACE should be enabled when set to TRACE");
+                    break;
+                case DEBUG:
+                    assertTrue(logger.isDebugEnabled(), "DEBUG should be enabled when set to DEBUG");
+                    assertFalse(logger.isTraceEnabled(), "TRACE should be disabled when set to DEBUG");
+                    break;
+                case INFO:
+                    assertTrue(logger.isInfoEnabled(), "INFO should be enabled when set to INFO");
+                    assertFalse(logger.isDebugEnabled(), "DEBUG should be disabled when set to INFO");
+                    break;
+                case WARN:
+                    assertTrue(logger.isWarnEnabled(), "WARN should be enabled when set to WARN");
+                    assertFalse(logger.isInfoEnabled(), "INFO should be disabled when set to WARN");
+                    break;
+                case ERROR:
+                    assertTrue(logger.isErrorEnabled(), "ERROR should be enabled when set to ERROR");
+                    assertFalse(logger.isWarnEnabled(), "WARN should be disabled when set to ERROR");
+                    break;
+                case NONE:
+                    assertFalse(logger.isTraceEnabled(), "TRACE should be disabled when set to NONE");
+                    assertFalse(logger.isDebugEnabled(), "DEBUG should be disabled when set to NONE");
+                    assertFalse(logger.isInfoEnabled(), "INFO should be disabled when set to NONE");
+                    assertFalse(logger.isWarnEnabled(), "WARN should be disabled when set to NONE");
+                    assertFalse(logger.isErrorEnabled(), "ERROR should be disabled when set to NONE");
+                    break;
+            }
+        }
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should prevent logging when setLevel is NONE")
+    void shouldPreventLoggingWhenLevelIsNone() {
+        // Given
+        logger.setLevel(Level.NONE);
+
+        // When
+        logger.trace("Trace message");
+        logger.debug("Debug message");
+        logger.info("Info message");
+        logger.warn("Warn message");
+        logger.error("Error message");
+
+        // Then - no events should be recorded
+        assertEquals(0, logger.getEventCount(), "No events should be recorded when level is NONE");
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should correctly handle logging after switching from NONE to a specific level")
+    void shouldLogAfterSwitchingFromNoneLevel() {
+        // Given
+        logger.setLevel(Level.NONE);
+        logger.info("This should not be logged");
+        assertEquals(0, logger.getEventCount(), "Event should not be recorded when level is NONE");
+
+        // When
         logger.setLevel(Level.INFO);
-        assertFalse(logger.isTraceEnabled());
-        assertFalse(logger.isDebugEnabled());
-        assertTrue(logger.isInfoEnabled());
-        assertTrue(logger.isWarnEnabled());
-        assertTrue(logger.isErrorEnabled());
+        logger.info("This should be logged");
 
-        // WARN level: trace/debug/info disabled, rest enabled
-        logger.setLevel(Level.WARN);
-        assertFalse(logger.isTraceEnabled());
-        assertFalse(logger.isDebugEnabled());
-        assertFalse(logger.isInfoEnabled());
-        assertTrue(logger.isWarnEnabled());
-        assertTrue(logger.isErrorEnabled());
+        // Then
+        assertEquals(1, logger.getEventCount(), "Event should be recorded after switching to INFO level");
+        assertEquals("This should be logged", logger.getEvent(0).getFormattedMessage());
+    }
 
-        // ERROR level: error only enabled
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should correctly honor ERROR level while excluding lower levels")
+    void shouldHonorErrorLevelExclusively() {
+        // Given
         logger.setLevel(Level.ERROR);
-        assertFalse(logger.isTraceEnabled());
-        assertFalse(logger.isDebugEnabled());
-        assertFalse(logger.isInfoEnabled());
-        assertFalse(logger.isWarnEnabled());
-        assertTrue(logger.isErrorEnabled());
+
+        // When
+        logger.trace("Trace");
+        logger.debug("Debug");
+        logger.info("Info");
+        logger.warn("Warn");
+        logger.error("Error");
+
+        // Then - only ERROR should be logged
+        assertEquals(1, logger.getEventCount(), "Only ERROR level should be logged");
+        assertEquals(Level.ERROR, logger.getEvent(0).getLevel());
+        assertEquals("Error", logger.getEvent(0).getFormattedMessage());
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should correctly honor WARN level while excluding lower levels")
+    void shouldHonorWarnLevelWithHierarchy() {
+        // Given
+        logger.setLevel(Level.WARN);
+
+        // When
+        logger.trace("Trace");
+        logger.debug("Debug");
+        logger.info("Info");
+        logger.warn("Warn");
+        logger.error("Error");
+
+        // Then - WARN and ERROR should be logged
+        assertEquals(2, logger.getEventCount(), "WARN and ERROR should be logged");
+        assertEquals(Level.WARN, logger.getEvent(0).getLevel());
+        assertEquals(Level.ERROR, logger.getEvent(1).getLevel());
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should correctly honor INFO level with message filtering")
+    void shouldHonorInfoLevelWithHierarchy() {
+        // Given
+        logger.setLevel(Level.INFO);
+
+        // When
+        logger.trace("Trace message");
+        logger.debug("Debug message");
+        logger.info("Info message");
+        logger.warn("Warn message");
+        logger.error("Error message");
+
+        // Then - INFO, WARN, and ERROR should be logged
+        assertEquals(3, logger.getEventCount(), "INFO, WARN, and ERROR should be logged");
+        assertEquals(Level.INFO, logger.getEvent(0).getLevel());
+        assertEquals(Level.WARN, logger.getEvent(1).getLevel());
+        assertEquals(Level.ERROR, logger.getEvent(2).getLevel());
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should correctly honor DEBUG level with message filtering")
+    void shouldHonorDebugLevelWithHierarchy() {
+        // Given
+        logger.setLevel(Level.DEBUG);
+
+        // When
+        logger.trace("Trace message");
+        logger.debug("Debug message");
+        logger.info("Info message");
+        logger.warn("Warn message");
+        logger.error("Error message");
+
+        // Then - DEBUG, INFO, WARN, and ERROR should be logged
+        assertEquals(4, logger.getEventCount(), "DEBUG, INFO, WARN, and ERROR should be logged");
+        assertEquals(Level.DEBUG, logger.getEvent(0).getLevel());
+        assertEquals(Level.INFO, logger.getEvent(1).getLevel());
+        assertEquals(Level.WARN, logger.getEvent(2).getLevel());
+        assertEquals(Level.ERROR, logger.getEvent(3).getLevel());
+    }
+
+    @Test
+    @AIGenerated("copilot")
+    @DisplayName("Should correctly honor TRACE level allowing all messages")
+    void shouldHonorTraceLevelWithAllMessages() {
+        // Given
+        logger.setLevel(Level.TRACE);
+
+        // When
+        logger.trace("Trace message");
+        logger.debug("Debug message");
+        logger.info("Info message");
+        logger.warn("Warn message");
+        logger.error("Error message");
+
+        // Then - all levels should be logged
+        assertEquals(5, logger.getEventCount(), "All levels should be logged at TRACE level");
+        assertEquals(Level.TRACE, logger.getEvent(0).getLevel());
+        assertEquals(Level.DEBUG, logger.getEvent(1).getLevel());
+        assertEquals(Level.INFO, logger.getEvent(2).getLevel());
+        assertEquals(Level.WARN, logger.getEvent(3).getLevel());
+        assertEquals(Level.ERROR, logger.getEvent(4).getLevel());
     }
 
     @Test

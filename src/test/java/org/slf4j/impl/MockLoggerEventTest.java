@@ -218,14 +218,15 @@ class MockLoggerEventTest {
     @Test
     @DisplayName("Should test all log levels")
     void shouldTestAllLogLevels() {
-        Level[] levels = Level.values();
-        
-        assertEquals(5, levels.length);
-        assertEquals(Level.ERROR, levels[0]);
-        assertEquals(Level.WARN, levels[1]);
-        assertEquals(Level.INFO, levels[2]);
-        assertEquals(Level.DEBUG, levels[3]);
-        assertEquals(Level.TRACE, levels[4]);
+        final Level[] levels = Level.values();
+
+        assertEquals(6, levels.length, "Should have 6 log levels (NONE, ERROR, WARN, INFO, DEBUG, TRACE)");
+        assertEquals(Level.NONE, levels[0], "First level should be NONE");
+        assertEquals(Level.ERROR, levels[1], "Second level should be ERROR");
+        assertEquals(Level.WARN, levels[2], "Third level should be WARN");
+        assertEquals(Level.INFO, levels[3], "Fourth level should be INFO");
+        assertEquals(Level.DEBUG, levels[4], "Fifth level should be DEBUG");
+        assertEquals(Level.TRACE, levels[5], "Sixth level should be TRACE");
     }
 
     @Test
