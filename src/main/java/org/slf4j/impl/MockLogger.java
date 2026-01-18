@@ -16,6 +16,7 @@
 package org.slf4j.impl;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
@@ -88,7 +89,7 @@ public class MockLogger implements Logger {
     @Setter
     private boolean stderrEnabled = false;
 
-    public void setLevel(Level level) {
+    public void setLevel(@NonNull final Level level) {
         switch (level) {
             case TRACE:
                 traceEnabled = true;
@@ -124,6 +125,13 @@ public class MockLogger implements Logger {
                 infoEnabled = false;
                 warnEnabled = false;
                 errorEnabled = true;
+                break;
+            case NONE:
+                traceEnabled = false;
+                debugEnabled = false;
+                infoEnabled = false;
+                warnEnabled = false;
+                errorEnabled = false;
                 break;
             default:
                 throw new IllegalArgumentException("Invalid level: " + level);
@@ -497,20 +505,20 @@ public class MockLogger implements Logger {
      * @param args      the message arguments
      */
     private void addLoggingEvent(
-             final Level level,
-             final Marker marker,
-             final Throwable throwable,
-             final String format,
-             final Object... args) {
-         // Check if the level is enabled before recording the event
-         if (!isLevelEnabled(level)) {
-             return;
-         }
-         final int index = loggerEvents.size();
-         final MockLoggerEvent event = new MockLoggerEvent(index, name, level, null, marker, throwable, format, args);
-         loggerEvents.add(event);
-         print(event);
-     }
+            final Level level,
+            final Marker marker,
+            final Throwable throwable,
+            final String format,
+            final Object... args) {
+        // Check if the level is enabled before recording the event
+        if (!isLevelEnabled(level)) {
+            return;
+        }
+        final int index = loggerEvents.size();
+        final MockLoggerEvent event = new MockLoggerEvent(index, name, level, null, marker, throwable, format, args);
+        loggerEvents.add(event);
+        print(event);
+    }
 
     /**
      * Checks if a specific log level is enabled.
