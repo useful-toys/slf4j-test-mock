@@ -380,6 +380,24 @@ class ExceptionHandlingTest {
         assertEventThrowableHasSuppressed(logger, 0, IOException.class);
         assertEventThrowableHasSuppressed(logger, 0, SQLException.class);
     }
+    
+    @Test
+    void shouldValidateExceptionStackTrace() {
+        // ⚠️ WARNING: Stack trace validation is fragile and sensitive to code changes
+        // Use only when absolutely necessary (e.g., diagnosing specific bugs in known code)
+        RuntimeException ex = new RuntimeException("Unexpected error in data processing");
+        
+        logger.error("Critical error", ex);
+        
+        // Verify that stack trace contains expected method/class names
+        // This will break if the code is refactored or if the exception is created elsewhere
+        assertEventThrowableStackTraceContains(logger, 0, RuntimeException.class,
+                "DataProcessor", "processRecord");
+        
+        // Better approach: validate exception type and message, not stack trace
+        // Stack traces change frequently with refactoring
+        assertEventWithThrowable(logger, 0, RuntimeException.class, "Unexpected error");
+    }
 }
 ```
 
