@@ -143,26 +143,36 @@ class MockLoggerDebugExtensionUnitTest {
         void shouldFallBackToFactoryLoggersWhenNoMockLoggerIsInParameters() throws Throwable {
             final MockLoggerDebugExtension extension = new MockLoggerDebugExtension();
 
-            final ILoggerFactory factory = MockLoggerFactory.getInstance();
-            final Logger factoryLogger = factory.getLogger("unit.factory." + System.nanoTime());
-            assertTrue(factoryLogger instanceof MockLogger, "should create a MockLogger via MockLoggerFactory");
-            factoryLogger.warn("factory event");
+            // Create a unique scope ID for this test - same scope that will be used by interceptTestMethod
+            final String testScopeId = "test-scope-" + System.nanoTime();
+            final String previousScopeId = MockLoggerFactory.getCurrentScopeId();
+            try {
+                // Set the scope before creating the logger so it's registered in the correct scope
+                MockLoggerFactory.setCurrentScopeId(testScopeId);
+                
+                final ILoggerFactory factory = MockLoggerFactory.getInstance();
+                final Logger factoryLogger = factory.getLogger("unit.factory." + System.nanoTime());
+                assertTrue(factoryLogger instanceof MockLogger, "should create a MockLogger via MockLoggerFactory");
+                factoryLogger.warn("factory event");
 
-            final InvocationInterceptor.Invocation<Void> invocation = () -> {
-                throw new AssertionError("expected failure");
-            };
+                final InvocationInterceptor.Invocation<Void> invocation = () -> {
+                    throw new AssertionError("expected failure");
+                };
 
-            final Method method = DummyMethods.class.getDeclaredMethod("oneString", String.class);
-            final ReflectiveInvocationContext<Method> invocationContext = newInvocationContext(method, Collections.singletonList("not a logger"));
-            final ExtensionContext extensionContext = newExtensionContext("failing test");
+                final Method method = DummyMethods.class.getDeclaredMethod("oneString", String.class);
+                final ReflectiveInvocationContext<Method> invocationContext = newInvocationContext(method, Collections.singletonList("not a logger"));
+                final ExtensionContext extensionContext = newExtensionContextWithUniqueId("failing test", testScopeId);
 
-            assertThrows(AssertionError.class,
-                () -> extension.interceptTestMethod(invocation, invocationContext, extensionContext),
-                "should rethrow AssertionError");
+                assertThrows(AssertionError.class,
+                    () -> extension.interceptTestMethod(invocation, invocationContext, extensionContext),
+                    "should rethrow AssertionError");
 
-            final String err = readErr();
-            assertTrue(err.contains("factory event"), "should print events from MockLoggerFactory fallback");
-            assertTrue(err.contains("Total events: 1"), "should include total event count from factory logger");
+                final String err = readErr();
+                assertTrue(err.contains("factory event"), "should print events from MockLoggerFactory fallback");
+                assertTrue(err.contains("Total events: 1"), "should include total event count from factory logger");
+            } finally {
+                MockLoggerFactory.setCurrentScopeId(previousScopeId);
+            }
         }
 
         @Test
@@ -427,6 +437,11 @@ class MockLoggerDebugExtensionUnitTest {
 
     @SuppressWarnings("unchecked")
     private static ExtensionContext newExtensionContext(final String displayName) {
+        return newExtensionContextWithUniqueId(displayName, "default-unique-id-" + System.nanoTime());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ExtensionContext newExtensionContextWithUniqueId(final String displayName, final String uniqueId) {
         return (ExtensionContext) Proxy.newProxyInstance(
             MockLoggerDebugExtensionUnitTest.class.getClassLoader(),
             new Class<?>[]{ExtensionContext.class},
@@ -434,6 +449,8 @@ class MockLoggerDebugExtensionUnitTest {
                 switch (invokedMethod.getName()) {
                     case "getDisplayName":
                         return displayName;
+                    case "getUniqueId":
+                        return uniqueId;
                     case "getTestInstance":
                         return Optional.empty();
                     case "toString":
