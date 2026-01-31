@@ -439,6 +439,156 @@ class AssertHelper {
     }
 
     /**
+     * Checks if a throwable's direct cause is an instance of the expected class.
+     *
+     * @param throwable  the throwable to check.
+     * @param causeType  the expected class of the cause.
+     * @return {@code true} if the throwable has a cause and it is an instance of the expected class.
+     */
+    @AIGenerated("copilot")
+    boolean isCauseOfInstance(final Throwable throwable, final Class<? extends Throwable> causeType) {
+        if (throwable == null || causeType == null) {
+            return false;
+        }
+        final Throwable cause = throwable.getCause();
+        return cause != null && causeType.isInstance(cause);
+    }
+
+    /**
+     * Asserts that a throwable's direct cause is an instance of the expected class.
+     *
+     * @param event      the log event to check.
+     * @param throwable  the throwable to check.
+     * @param causeType  the expected class of the cause.
+     * @throws AssertionError if the throwable is null, has no cause, or the cause is not of the expected type.
+     */
+    @AIGenerated("copilot")
+    void assertCauseOfInstance(final MockLoggerEvent event, final Throwable throwable, final Class<? extends Throwable> causeType) {
+        Assertions.assertNotNull(throwable, String.format("should have a throwable at eventIndex %d", event.getEventIndex()));
+        final Throwable cause = throwable.getCause();
+        Assertions.assertNotNull(cause,
+                String.format("should have a cause in throwable at eventIndex %d; throwable: %s",
+                        event.getEventIndex(), throwable.getClass().getName()));
+        Assertions.assertTrue(causeType.isInstance(cause),
+                String.format("should have expected cause type at eventIndex %d; expected: %s, actual: %s",
+                        event.getEventIndex(), causeType.getName(), cause.getClass().getName()));
+    }
+
+    /**
+     * Checks if a throwable has at least one suppressed exception of the expected type.
+     *
+     * @param throwable       the throwable to check.
+     * @param suppressedType  the expected class of the suppressed exception.
+     * @return {@code true} if the throwable has at least one suppressed exception of the expected type.
+     */
+    @AIGenerated("copilot")
+    boolean hasSuppressedOfInstance(final Throwable throwable, final Class<? extends Throwable> suppressedType) {
+        if (throwable == null || suppressedType == null) {
+            return false;
+        }
+        final Throwable[] suppressed = throwable.getSuppressed();
+        if (suppressed == null || suppressed.length == 0) {
+            return false;
+        }
+        return Arrays.stream(suppressed).anyMatch(suppressedType::isInstance);
+    }
+
+    /**
+     * Asserts that a throwable has at least one suppressed exception of the expected type.
+     *
+     * @param event           the log event to check.
+     * @param throwable       the throwable to check.
+     * @param suppressedType  the expected class of the suppressed exception.
+     * @throws AssertionError if the throwable is null or has no suppressed exception of the expected type.
+     */
+    @AIGenerated("copilot")
+    void assertHasSuppressedOfInstance(final MockLoggerEvent event, final Throwable throwable, final Class<? extends Throwable> suppressedType) {
+        Assertions.assertNotNull(throwable, String.format("should have a throwable at eventIndex %d", event.getEventIndex()));
+        final Throwable[] suppressed = throwable.getSuppressed();
+        Assertions.assertNotNull(suppressed,
+                String.format("should have suppressed exceptions in throwable at eventIndex %d; throwable: %s",
+                        event.getEventIndex(), throwable.getClass().getName()));
+        Assertions.assertTrue(suppressed.length > 0,
+                String.format("should have at least one suppressed exception at eventIndex %d; throwable: %s",
+                        event.getEventIndex(), throwable.getClass().getName()));
+        final boolean hasSuppressed = Arrays.stream(suppressed).anyMatch(suppressedType::isInstance);
+        Assertions.assertTrue(hasSuppressed,
+                String.format("should have suppressed exception of expected type at eventIndex %d; expected: %s, actual suppressed types: %s",
+                        event.getEventIndex(), suppressedType.getName(),
+                        Arrays.stream(suppressed).map(t -> t.getClass().getName()).toArray()));
+    }
+
+    /**
+     * Checks if the throwable's cause chain contains an exception of the expected type.
+     * <p>
+     * This method traverses the entire cause chain (throwable → cause → cause.getCause() → ...)
+     * and returns {@code true} if any throwable in the chain is an instance of the expected type.
+     *
+     * @param throwable  the throwable to check.
+     * @param type       the expected class of the exception in the chain.
+     * @return {@code true} if any throwable in the cause chain is an instance of the expected type.
+     */
+    @AIGenerated("copilot")
+    boolean chainContainsInstance(final Throwable throwable, final Class<? extends Throwable> type) {
+        if (throwable == null || type == null) {
+            return false;
+        }
+        Throwable current = throwable;
+        while (current != null) {
+            if (type.isInstance(current)) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    /**
+     * Asserts that the throwable's cause chain contains an exception of the expected type.
+     * <p>
+     * This method traverses the entire cause chain (throwable → cause → cause.getCause() → ...)
+     * and asserts that at least one throwable in the chain is an instance of the expected type.
+     *
+     * @param event      the log event to check.
+     * @param throwable  the throwable to check.
+     * @param type       the expected class of the exception in the chain.
+     * @throws AssertionError if the throwable is null or no exception in the chain matches the expected type.
+     */
+    @AIGenerated("copilot")
+    void assertChainContainsInstance(final MockLoggerEvent event, final Throwable throwable, final Class<? extends Throwable> type) {
+        Assertions.assertNotNull(throwable, String.format("should have a throwable at eventIndex %d", event.getEventIndex()));
+        final boolean chainContains = chainContainsInstance(throwable, type);
+        Assertions.assertTrue(chainContains,
+                String.format("should have exception of expected type in cause chain at eventIndex %d; expected: %s, throwable chain: %s",
+                        event.getEventIndex(), type.getName(), buildChainDescription(throwable)));
+    }
+
+    /**
+     * Builds a description of the throwable cause chain for error messages.
+     *
+     * @param throwable the throwable to describe.
+     * @return a string describing the throwable chain.
+     */
+    @AIGenerated("copilot")
+    private String buildChainDescription(final Throwable throwable) {
+        final StringBuilder sb = new StringBuilder();
+        Throwable current = throwable;
+        int depth = 0;
+        while (current != null && depth < 10) {
+            if (depth > 0) {
+                sb.append(" → ");
+            }
+            sb.append(current.getClass().getName());
+            current = current.getCause();
+            depth++;
+        }
+        if (current != null) {
+            sb.append(" → ...");
+        }
+        return sb.toString();
+    }
+
+    /**
      * Converts a Logger instance to MockLogger, throwing an assertion error if the conversion is not possible.
      *
      * @param logger the Logger instance to convert

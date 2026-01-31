@@ -16,7 +16,6 @@
 package org.usefultoys.slf4jtestmock;
 
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
@@ -325,6 +324,153 @@ public final class AssertLogger {
         final boolean hasEvent = loggerEvents.stream()
                 .anyMatch(event -> event.getThrowable() != null);
         Assertions.assertTrue(hasEvent, "should have at least one event with a throwable");
+    }
+
+    // Methods for asserting throwable cause
+
+    /**
+     * Asserts that the logger has recorded an event at the specified index with a throwable whose direct cause is of the expected type.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     * @param causeType        the expected class of the throwable's cause
+     */
+    @AIGenerated("copilot")
+    public static void assertEventThrowableCauseIs(final @NonNull Logger logger, final int eventIndex, final @NonNull Class<? extends Throwable> causeType) {
+        final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
+        final Throwable throwable = event.getThrowable();
+        AssertHelper.assertCauseOfInstance(event, throwable, causeType);
+    }
+
+    /**
+     * Asserts that the logger has recorded at least one event with a throwable whose direct cause is of the expected type.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param causeType        the expected class of the throwable's cause
+     */
+    @AIGenerated("copilot")
+    public static void assertHasEventThrowableCauseIs(final @NonNull Logger logger, final @NonNull Class<? extends Throwable> causeType) {
+        final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
+        final boolean hasEvent = loggerEvents.stream()
+                .anyMatch(event -> AssertHelper.isCauseOfInstance(event.getThrowable(), causeType));
+        Assertions.assertTrue(hasEvent,
+                String.format("should have at least one event with throwable cause of expected type; expected: %s", causeType.getName()));
+    }
+
+    /**
+     * Asserts that the logger has not recorded any event with a throwable whose direct cause is of the unexpected type.
+     *
+     * @param logger              the Logger instance to check (must be a MockLogger)
+     * @param unexpectedCauseType the class of the throwable's cause that should not be present
+     */
+    @AIGenerated("copilot")
+    public static void assertNoEventThrowableCauseIs(final @NonNull Logger logger, final @NonNull Class<? extends Throwable> unexpectedCauseType) {
+        final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
+        final boolean hasEvent = loggerEvents.stream()
+                .anyMatch(event -> AssertHelper.isCauseOfInstance(event.getThrowable(), unexpectedCauseType));
+        Assertions.assertFalse(hasEvent,
+                String.format("should have no events with throwable cause of unexpected type; unexpected: %s", unexpectedCauseType.getName()));
+    }
+
+    // Methods for asserting throwable suppressed exceptions
+
+    /**
+     * Asserts that the logger has recorded an event at the specified index with a throwable that has at least one suppressed exception of the expected type.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     * @param suppressedType   the expected class of the suppressed exception
+     */
+    @AIGenerated("copilot")
+    public static void assertEventThrowableHasSuppressed(final @NonNull Logger logger, final int eventIndex, final @NonNull Class<? extends Throwable> suppressedType) {
+        final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
+        final Throwable throwable = event.getThrowable();
+        AssertHelper.assertHasSuppressedOfInstance(event, throwable, suppressedType);
+    }
+
+    /**
+     * Asserts that the logger has recorded at least one event with a throwable that has at least one suppressed exception of the expected type.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param suppressedType   the expected class of the suppressed exception
+     */
+    @AIGenerated("copilot")
+    public static void assertHasEventThrowableHasSuppressed(final @NonNull Logger logger, final @NonNull Class<? extends Throwable> suppressedType) {
+        final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
+        final boolean hasEvent = loggerEvents.stream()
+                .anyMatch(event -> AssertHelper.hasSuppressedOfInstance(event.getThrowable(), suppressedType));
+        Assertions.assertTrue(hasEvent,
+                String.format("should have at least one event with throwable having suppressed exception of expected type; expected: %s", suppressedType.getName()));
+    }
+
+    /**
+     * Asserts that the logger has not recorded any event with a throwable that has a suppressed exception of the unexpected type.
+     *
+     * @param logger                   the Logger instance to check (must be a MockLogger)
+     * @param unexpectedSuppressedType the class of the suppressed exception that should not be present
+     */
+    @AIGenerated("copilot")
+    public static void assertNoEventThrowableHasSuppressed(final @NonNull Logger logger, final @NonNull Class<? extends Throwable> unexpectedSuppressedType) {
+        final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
+        final boolean hasEvent = loggerEvents.stream()
+                .anyMatch(event -> AssertHelper.hasSuppressedOfInstance(event.getThrowable(), unexpectedSuppressedType));
+        Assertions.assertFalse(hasEvent,
+                String.format("should have no events with throwable having suppressed exception of unexpected type; unexpected: %s", unexpectedSuppressedType.getName()));
+    }
+
+    // Methods for asserting throwable cause chain
+
+    /**
+     * Asserts that the logger has recorded an event at the specified index with a throwable whose cause chain contains an exception of the expected type.
+     * <p>
+     * This method traverses the entire cause chain (throwable → cause → cause.getCause() → ...)
+     * and asserts that at least one throwable in the chain is an instance of the expected type.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param eventIndex       the index of the event to check
+     * @param type             the expected class of the exception in the cause chain
+     */
+    @AIGenerated("copilot")
+    public static void assertEventThrowableChainContains(final @NonNull Logger logger, final int eventIndex, final @NonNull Class<? extends Throwable> type) {
+        final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
+        final Throwable throwable = event.getThrowable();
+        AssertHelper.assertChainContainsInstance(event, throwable, type);
+    }
+
+    /**
+     * Asserts that the logger has recorded at least one event with a throwable whose cause chain contains an exception of the expected type.
+     * <p>
+     * This method traverses the entire cause chain (throwable → cause → cause.getCause() → ...)
+     * and asserts that at least one event has a throwable in its chain that is an instance of the expected type.
+     *
+     * @param logger           the Logger instance to check (must be a MockLogger)
+     * @param type             the expected class of the exception in the cause chain
+     */
+    @AIGenerated("copilot")
+    public static void assertHasEventThrowableChainContains(final @NonNull Logger logger, final @NonNull Class<? extends Throwable> type) {
+        final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
+        final boolean hasEvent = loggerEvents.stream()
+                .anyMatch(event -> AssertHelper.chainContainsInstance(event.getThrowable(), type));
+        Assertions.assertTrue(hasEvent,
+                String.format("should have at least one event with throwable chain containing expected type; expected: %s", type.getName()));
+    }
+
+    /**
+     * Asserts that the logger has not recorded any event with a throwable whose cause chain contains an exception of the unexpected type.
+     * <p>
+     * This method traverses the entire cause chain (throwable → cause → cause.getCause() → ...)
+     * and asserts that no event has a throwable in its chain that is an instance of the unexpected type.
+     *
+     * @param logger              the Logger instance to check (must be a MockLogger)
+     * @param unexpectedType      the class of the exception that should not be in any cause chain
+     */
+    @AIGenerated("copilot")
+    public static void assertNoEventThrowableChainContains(final @NonNull Logger logger, final @NonNull Class<? extends Throwable> unexpectedType) {
+        final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
+        final boolean hasEvent = loggerEvents.stream()
+                .anyMatch(event -> AssertHelper.chainContainsInstance(event.getThrowable(), unexpectedType));
+        Assertions.assertFalse(hasEvent,
+                String.format("should have no events with throwable chain containing unexpected type; unexpected: %s", unexpectedType.getName()));
     }
 
     // Negative assertion methods (no event matching the criteria in any position)

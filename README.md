@@ -214,6 +214,21 @@ The `AssertLogger` utility class provides comprehensive assertion methods for ve
 - `assertHasEventWithThrowable(Logger, Class, String...)` - Assert any event has throwable type and its message contains all parts
 - `assertHasEventWithThrowable(Logger)` - Assert any event has any throwable
 
+**Throwable Cause Assertions:**
+- `assertEventThrowableCauseIs(Logger, int, Class)` - Assert event's throwable has specific cause type
+- `assertHasEventThrowableCauseIs(Logger, Class)` - Assert any event's throwable has specific cause type
+- `assertNoEventThrowableCauseIs(Logger, Class)` - Assert no event's throwable has specific cause type
+
+**Throwable Suppressed Exception Assertions:**
+- `assertEventThrowableHasSuppressed(Logger, int, Class)` - Assert event's throwable has suppressed exception of type
+- `assertHasEventThrowableHasSuppressed(Logger, Class)` - Assert any event's throwable has suppressed exception of type
+- `assertNoEventThrowableHasSuppressed(Logger, Class)` - Assert no event's throwable has suppressed exception of type
+
+**Throwable Chain Assertions:**
+- `assertEventThrowableChainContains(Logger, int, Class)` - Assert event's throwable cause chain contains type
+- `assertHasEventThrowableChainContains(Logger, Class)` - Assert any event's throwable cause chain contains type
+- `assertNoEventThrowableChainContains(Logger, Class)` - Assert no event's throwable cause chain contains type
+
 **Argument Assertions:**
 - `assertEventWithArgument(Logger, int, int, Object)` - Assert event has expected argument at the specified argument index
 - `assertEventWithArguments(Logger, int, Object...)` - Assert event has exactly the expected arguments (same count and order)
@@ -334,6 +349,36 @@ class ExceptionHandlingTest {
         
         // Verify exception type and exception message parts
         assertEventWithThrowable(logger, 0, RuntimeException.class, "Database", "connection", "network");
+    }
+    
+    @Test
+    void shouldLogExceptionCause() {
+        // Create exception chain: RuntimeException -> IOException -> SQLException
+        SQLException rootCause = new SQLException("Connection timeout");
+        IOException cause = new IOException("Stream closed", rootCause);
+        RuntimeException ex = new RuntimeException("Operation failed", cause);
+        
+        logger.error("Service error", ex);
+        
+        // Verify the direct cause
+        assertEventThrowableCauseIs(logger, 0, IOException.class);
+        
+        // Verify the entire cause chain contains the root cause
+        assertEventThrowableChainContains(logger, 0, SQLException.class);
+        assertEventThrowableChainContains(logger, 0, IOException.class);
+    }
+    
+    @Test
+    void shouldLogSuppressedExceptions() {
+        RuntimeException ex = new RuntimeException("Main error");
+        ex.addSuppressed(new IOException("Cleanup failed"));
+        ex.addSuppressed(new SQLException("Rollback failed"));
+        
+        logger.error("Transaction failed", ex);
+        
+        // Verify suppressed exceptions
+        assertEventThrowableHasSuppressed(logger, 0, IOException.class);
+        assertEventThrowableHasSuppressed(logger, 0, SQLException.class);
     }
 }
 ```
