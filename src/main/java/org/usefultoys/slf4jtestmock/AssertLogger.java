@@ -473,6 +473,91 @@ public final class AssertLogger {
                 String.format("should have no events with throwable chain containing unexpected type; unexpected: %s", unexpectedType.getName()));
     }
 
+    // Methods for asserting throwable stack trace
+
+    /**
+     * Asserts that the logger has recorded an event at the specified index with a throwable whose stack trace contains all specified fragments.
+     * <p>
+     * Each fragment must appear in at least one stack trace element's string representation.
+     * <p>
+     * <b>⚠️ WARNING: Stack trace validation is fragile!</b>
+     * <ul>
+     *   <li>Tests may break with code refactoring (method renames, extractions)</li>
+     *   <li>Stack traces vary across JVM implementations and optimization levels</li>
+     *   <li>Inlining and JIT optimizations can remove or modify stack frames</li>
+     *   <li>Consider validating exception type, message, and cause instead when possible</li>
+     * </ul>
+     * <p>
+     * Use this assertion sparingly, only when you specifically need to verify
+     * the execution path or calling context of an exception.
+     *
+     * @param logger                the Logger instance to check (must be a MockLogger)
+     * @param eventIndex            the index of the event to check
+     * @param throwableClass        the expected throwable class
+     * @param stackTraceFragments   substrings expected to appear in stack trace elements
+     */
+    @AIGenerated("copilot")
+    public static void assertEventThrowableStackTraceContains(
+            final @NonNull Logger logger,
+            final int eventIndex,
+            final @NonNull Class<? extends Throwable> throwableClass,
+            final @NonNull String... stackTraceFragments) {
+        final MockLoggerEvent event = AssertHelper.loggerIndexToEvent(logger, eventIndex);
+        final Throwable throwable = event.getThrowable();
+        AssertHelper.assertThrowableOfInstance(event, throwable, throwableClass);
+        AssertHelper.assertStackTraceContainsAll(event, throwable, stackTraceFragments);
+    }
+
+    /**
+     * Asserts that the logger has recorded at least one event with a throwable whose stack trace contains all specified fragments.
+     * <p>
+     * <b>⚠️ WARNING: Stack trace validation is fragile!</b>
+     * See {@link #assertEventThrowableStackTraceContains(Logger, int, Class, String...)} for details.
+     *
+     * @param logger                the Logger instance to check (must be a MockLogger)
+     * @param throwableClass        the expected throwable class
+     * @param stackTraceFragments   substrings expected to appear in stack trace elements
+     */
+    @AIGenerated("copilot")
+    public static void assertHasEventThrowableStackTraceContains(
+            final @NonNull Logger logger,
+            final @NonNull Class<? extends Throwable> throwableClass,
+            final @NonNull String... stackTraceFragments) {
+        final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
+        final boolean hasEvent = loggerEvents.stream()
+                .anyMatch(event ->
+                        AssertHelper.isThrowableOfInstance(event.getThrowable(), throwableClass) &&
+                                AssertHelper.stackTraceContainsAll(event.getThrowable(), stackTraceFragments));
+        Assertions.assertTrue(hasEvent,
+                String.format("should have at least one event with throwable stack trace containing all fragments; expected type: %s, expected fragments: %s",
+                        throwableClass.getName(), String.join(", ", stackTraceFragments)));
+    }
+
+    /**
+     * Asserts that the logger has not recorded any event with a throwable whose stack trace contains all specified fragments.
+     * <p>
+     * <b>⚠️ WARNING: Stack trace validation is fragile!</b>
+     * See {@link #assertEventThrowableStackTraceContains(Logger, int, Class, String...)} for details.
+     *
+     * @param logger                the Logger instance to check (must be a MockLogger)
+     * @param throwableClass        the unexpected throwable class
+     * @param stackTraceFragments   substrings that should not appear together in stack trace
+     */
+    @AIGenerated("copilot")
+    public static void assertNoEventThrowableStackTraceContains(
+            final @NonNull Logger logger,
+            final @NonNull Class<? extends Throwable> throwableClass,
+            final @NonNull String... stackTraceFragments) {
+        final List<MockLoggerEvent> loggerEvents = AssertHelper.loggerToEvents(logger);
+        final boolean hasEvent = loggerEvents.stream()
+                .anyMatch(event ->
+                        AssertHelper.isThrowableOfInstance(event.getThrowable(), throwableClass) &&
+                                AssertHelper.stackTraceContainsAll(event.getThrowable(), stackTraceFragments));
+        Assertions.assertFalse(hasEvent,
+                String.format("should have no events with throwable stack trace containing all fragments; unexpected type: %s, unexpected fragments: %s",
+                        throwableClass.getName(), String.join(", ", stackTraceFragments)));
+    }
+
     // Negative assertion methods (no event matching the criteria in any position)
 
     /**

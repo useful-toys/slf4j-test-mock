@@ -589,6 +589,86 @@ class AssertHelper {
     }
 
     /**
+     * Checks if a throwable's stack trace contains all specified fragments.
+     * <p>
+     * Each fragment must appear in at least one stack trace element's string representation.
+     *
+     * @param throwable the throwable to check.
+     * @param fragments the array of substrings to check for in stack trace.
+     * @return {@code true} if all fragments are found in the stack trace.
+     */
+    @AIGenerated("copilot")
+    boolean stackTraceContainsAll(final Throwable throwable, final String[] fragments) {
+        if (throwable == null || fragments == null) {
+            return false;
+        }
+        final StackTraceElement[] stackTrace = throwable.getStackTrace();
+        if (stackTrace == null || stackTrace.length == 0) {
+            return false;
+        }
+
+        // Convert stack trace to searchable strings
+        final List<String> stackLines = Arrays.stream(stackTrace)
+                .map(StackTraceElement::toString)
+                .collect(java.util.stream.Collectors.toList());
+
+        // All fragments must appear somewhere in the stack
+        return Arrays.stream(fragments)
+                .allMatch(fragment ->
+                        stackLines.stream().anyMatch(line -> line.contains(fragment))
+                );
+    }
+
+    /**
+     * Asserts that a throwable's stack trace contains all specified fragments.
+     * <p>
+     * <b>⚠️ WARNING:</b> Stack trace validation is fragile and may break with code refactoring.
+     *
+     * @param event     the log event to check.
+     * @param throwable the throwable to check.
+     * @param fragments the array of substrings expected in stack trace.
+     * @throws AssertionError if the throwable is null or any fragment is missing from stack trace.
+     */
+    @AIGenerated("copilot")
+    void assertStackTraceContainsAll(final MockLoggerEvent event, final Throwable throwable, final String[] fragments) {
+        Assertions.assertNotNull(throwable,
+                String.format("should have a throwable at eventIndex %d", event.getEventIndex()));
+
+        final boolean containsAll = stackTraceContainsAll(throwable, fragments);
+        Assertions.assertTrue(containsAll,
+                String.format("should have all expected fragments in stack trace at eventIndex %d; expected: %s; actual stack trace: %s",
+                        event.getEventIndex(),
+                        String.join(", ", fragments),
+                        formatStackTrace(throwable)));
+    }
+
+    /**
+     * Formats a throwable's stack trace for error messages.
+     * <p>
+     * Limits output to first 10 stack frames to avoid overwhelming error messages.
+     *
+     * @param throwable the throwable whose stack trace to format.
+     * @return formatted stack trace string.
+     */
+    @AIGenerated("copilot")
+    private String formatStackTrace(final Throwable throwable) {
+        final StackTraceElement[] elements = throwable.getStackTrace();
+        if (elements == null || elements.length == 0) {
+            return "(empty stack trace)";
+        }
+        // Show first 10 elements to avoid huge error messages
+        final StringBuilder sb = new StringBuilder(throwable.getClass().getName());
+        final int limit = Math.min(10, elements.length);
+        for (int i = 0; i < limit; i++) {
+            sb.append("\n    at ").append(elements[i].toString());
+        }
+        if (elements.length > limit) {
+            sb.append("\n    ... ").append(elements.length - limit).append(" more");
+        }
+        return sb.toString();
+    }
+
+    /**
      * Converts a Logger instance to MockLogger, throwing an assertion error if the conversion is not possible.
      *
      * @param logger the Logger instance to convert
